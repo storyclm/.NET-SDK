@@ -44,7 +44,9 @@ namespace StoryCLM.SDK
 
         const string kMediaTypeHeader = "application/json";
         const string kTables = @"/v1/tables/";
-        const string endpoint = "https://api.storyclm.com";
+        const string kWebHooks = @"/v1/webhooks/";
+        //const string endpoint = "https://api.storyclm.com";
+        const string endpoint = "https://localhost:44330";
 
         private string ToParamString(string[] param)
         {
@@ -79,6 +81,26 @@ namespace StoryCLM.SDK
         {
             if (response == null) return;
             throw new Exception($"Response: error; Status code: {response.StatusCode}; Message: {(string.IsNullOrEmpty(result) ? string.Empty : result)}");
+        }
+
+        private async Task<string> POSTAsync(string resource, string content, string contentType = kMediaTypeHeader)
+        {
+            if (string.IsNullOrEmpty(resource)) throw new Exception("");
+            string result = null;
+            using (var handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            })
+            using (var client = new HttpClient(handler) { BaseAddress = new Uri(endpoint) })
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
+                HttpResponseMessage response = await client.PostAsync(resource, new StringContent(content, Encoding.UTF8, contentType));
+                result = await response.Content.ReadAsStringAsync();
+                if (!(response.StatusCode != System.Net.HttpStatusCode.Created ||
+                    response.StatusCode != System.Net.HttpStatusCode.OK)) ThrowResponseException(response, result);
+            }
+            return result;
         }
 
         private async Task<T> POSTAsync<T>(string resource, object o)
@@ -346,10 +368,21 @@ namespace StoryCLM.SDK
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
         public async Task<IEnumerable<ApiLog>> DeleteAsync(int tableId, IEnumerable<string> ids) => await DELETEAsync<IEnumerable<ApiLog>>(kTables + tableId + "/deletemany", ToParamString(ids.ToArray()));
-        
+
         #endregion
 
         #endregion
+
+        /// <summary>
+        /// Вызывает WebHook
+        /// </summary>
+        /// <param name="id">Идентификатор хука</param>
+        /// <param name="key">Секретный ключ</param>
+        /// <param name="content">Данные, которые будут переданы в хук</param>
+        /// <param name="contentType">Content-Type, default application/json</param>
+        /// <returns></returns>
+        public async Task WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => await POSTAsync(kWebHooks + "/" + id + "/" + key, content, contentType);
+
 
     }
 }
