@@ -45,8 +45,8 @@ namespace StoryCLM.SDK
         const string kMediaTypeHeader = "application/json";
         const string kTables = @"/v1/tables/";
         const string kWebHooks = @"/v1/webhooks/";
-        //const string endpoint = "https://api.storyclm.com";
-        const string endpoint = "https://localhost:44330";
+        const string endpoint = "https://api.storyclm.com";
+        //const string endpoint = "https://localhost:44330";
 
         private string ToParamString(string[] param)
         {
@@ -191,7 +191,8 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="clientId">Идентификатор клиента в базе данных</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiTable>> GetTablesAsync(int clientId) => await GETAsync<IEnumerable<ApiTable>>(kTables + clientId + "/tables", string.Empty);
+        public async Task<IEnumerable<ApiTable>> GetTablesAsync(int clientId) => 
+            await GETAsync<IEnumerable<ApiTable>>(kTables + clientId + "/tables", string.Empty);
 
         #region Count
 
@@ -201,7 +202,8 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
-        public async Task<long> CountAsync(int tableId) => (await GETAsync<ApiCount>(kTables + tableId + "/count", string.Empty)).Count;
+        public async Task<long> CountAsync(int tableId) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/count", string.Empty)).Count;
 
         /// <summary>
         /// Таблицы.
@@ -209,7 +211,8 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
-        public async Task<long> CountAsync(int tableId, string query) => (await GETAsync<ApiCount>(kTables + tableId + "/countbyquery/" + ToBase64(query), string.Empty)).Count;
+        public async Task<long> CountAsync(int tableId, string query) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/countbyquery/" + ToBase64(query), string.Empty)).Count;
 
         /// <summary>
         /// Таблицы.
@@ -217,7 +220,8 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
-        public async Task<long> LogCountAsync(int tableId) => (await GETAsync<ApiCount>(kTables + tableId + "/logcount", string.Empty)).Count;
+        public async Task<long> LogCountAsync(int tableId) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/logcount", string.Empty)).Count;
 
         /// <summary>
         /// Таблицы.
@@ -226,7 +230,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="date">Дата, после которой будет произведена выборка</param>
         /// <returns></returns>
-        public async Task<long> LogCountAsync(int tableId, DateTime date) => (await GETAsync<ApiCount>(kTables + tableId + "/logcountbydate/" + ConvertToUnixTime(date).ToString(), string.Empty)).Count;
+        public async Task<long> LogCountAsync(int tableId, DateTime date) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/logcountbydate/" + ConvertToUnixTime(date).ToString(), string.Empty)).Count;
 
         #endregion
 
@@ -240,7 +245,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
-        public async Task<T> FindAsync<T>(int tableId, string id) => await GETAsync<T>(kTables + tableId + "/findbyid/" + id, string.Empty);
+        public async Task<T> FindAsync<T>(int tableId, string id) where T : class, new() => 
+            await GETAsync<T>(kTables + tableId + "/findbyid/" + id, string.Empty);
 
 
         /// <summary>
@@ -255,7 +261,7 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, string query, string sortfield, int sort = 1, int skip = 0, int take = 100)
+        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, string query, string sortfield, int sort = 1, int skip = 0, int take = 100) where T : class, new()
         {
             string resource = kTables + tableId + "/find/" + query + "/" + sortfield + "/" + sort.ToString() + "/" + skip + "/" + take;
             return await GETAsync<IEnumerable<T>>(resource, string.Empty);
@@ -269,7 +275,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, IEnumerable<string> ids) => await GETAsync<IEnumerable<T>>(kTables + tableId + "/findbyids", ToParamString(ids.ToArray()));
+        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() => 
+            await GETAsync<IEnumerable<T>>(kTables + tableId + "/findbyids", ToParamString(ids.ToArray()));
 
         /// <summary>
         /// Таблицы.
@@ -279,7 +286,8 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, int skip = 0, int take = 100) => await GETAsync<IEnumerable<T>>(kTables + tableId + "/findall/" + skip + "/" + take, string.Empty);
+        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, int skip = 0, int take = 100) where T : class, new() => 
+            await GETAsync<IEnumerable<T>>(kTables + tableId + "/findall/" + skip + "/" + take, string.Empty);
 
         #endregion
 
@@ -292,7 +300,8 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, int skip = 0, int take = 100) => await GETAsync<IEnumerable<ApiLog>> (kTables + tableId + "/log/" + skip + "/" + take, string.Empty);
+        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, int skip = 0, int take = 100) => 
+            await GETAsync<IEnumerable<ApiLog>> (kTables + tableId + "/log/" + skip + "/" + take, string.Empty);
 
         /// <summary>
         /// Таблицы.
@@ -302,7 +311,8 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime date, int skip = 0, int take = 100) => await GETAsync<IEnumerable<ApiLog>>(kTables + tableId + "/logbydate/" + ConvertToUnixTime(date).ToString() + "/" + skip + "/" + take, string.Empty);
+        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime date, int skip = 0, int take = 100) => 
+            await GETAsync<IEnumerable<ApiLog>>(kTables + tableId + "/logbydate/" + ConvertToUnixTime(date).ToString() + "/" + skip + "/" + take, string.Empty);
 
         #endregion
 
@@ -316,7 +326,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns>Новая запись с добавлением идендификатора</returns>
-        public async Task<T> InsertAsync<T>(int tableId, T o) => await POSTAsync<T>(kTables + tableId + "/insert", o);
+        public async Task<T> InsertAsync<T>(int tableId, T o) where T : class, new() => 
+            await POSTAsync<T>(kTables + tableId + "/insert", o);
 
         /// <summary>
         /// Таблицы.
@@ -325,7 +336,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> InsertAsync<T>(int tableId, IEnumerable<T> o) => await POSTAsync<IEnumerable<T>>(kTables + tableId + "/insertmany", o);
+        public async Task<IEnumerable<T>> InsertAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() => 
+            await POSTAsync<IEnumerable<T>>(kTables + tableId + "/insertmany", o);
 
         #endregion
 
@@ -338,7 +350,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<T> UpdateAsync<T>(int tableId, T o) => await PUTAsync<T>(kTables + tableId + "/update", o);
+        public async Task<T> UpdateAsync<T>(int tableId, T o) where T : class, new() => 
+            await PUTAsync<T>(kTables + tableId + "/update", o);
 
         /// <summary>
         /// Таблицы.
@@ -347,7 +360,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> UpdateAsync<T>(int tableId, IEnumerable<T> o) => await PUTAsync<IEnumerable<T>>(kTables + tableId + "/updatemany", o);
+        public async Task<IEnumerable<T>> UpdateAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() => 
+            await PUTAsync<IEnumerable<T>>(kTables + tableId + "/updatemany", o);
 
         #endregion
 
@@ -359,7 +373,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
-        public async Task<ApiLog> DeleteAsync(int tableId, string id) => await DELETEAsync<ApiLog>(kTables + tableId + "/delete/" + id, string.Empty);
+        public async Task<T> DeleteAsync<T>(int tableId, string id) where T : class, new() => 
+            await DELETEAsync<T>(kTables + tableId + "/delete/" + id, string.Empty);
 
         /// <summary>
         /// Таблицы.
@@ -367,7 +382,8 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> DeleteAsync(int tableId, IEnumerable<string> ids) => await DELETEAsync<IEnumerable<ApiLog>>(kTables + tableId + "/deletemany", ToParamString(ids.ToArray()));
+        public async Task<IEnumerable<T>> DeleteAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() => 
+            await DELETEAsync<IEnumerable<T>>(kTables + tableId + "/deletemany", ToParamString(ids.ToArray()));
 
         #endregion
 
@@ -381,7 +397,8 @@ namespace StoryCLM.SDK
         /// <param name="content">Данные, которые будут переданы в хук</param>
         /// <param name="contentType">Content-Type, default application/json</param>
         /// <returns></returns>
-        public async Task WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => await POSTAsync(kWebHooks + "/" + id + "/" + key, content, contentType);
+        public async Task<string> WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => 
+            await POSTAsync(kWebHooks + "/" + id + "/" + key, content, contentType);
 
 
     }
