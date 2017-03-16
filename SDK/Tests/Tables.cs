@@ -1,6 +1,6 @@
 ﻿/*!
-* StoryCLM.SDK Library v0.5.0
-* Copyright(c) 2016, Vladimir Klyuev, Breffi Inc. All rights reserved.
+* StoryCLM.SDK Library v1.0.0
+* Copyright(c) 2017, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
 using StoryCLM.SDK;
@@ -8,6 +8,7 @@ using StoryCLM.SDK.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Tests.Models;
 using Xunit;
 
@@ -15,21 +16,26 @@ namespace Tests
 {
    public class Tables
     {
+        const string clientId = "client_18";
+        const string secret = "";
+
         [Fact]
         public async void GetTables()
         {
             SCLM sclm = SCLM.Instance;
-            IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(1);
+            await sclm.AuthAsync(clientId, secret);
+            IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(18);
             ApiTable table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
             Assert.True(tables.Count() > 0);
             Assert.NotNull(table);
         }
 
         [Theory]
-        [InlineData(6)]
+        [InlineData(23)]
         public async void Insert(int tableId)
         {
             SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
             Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
             Assert.NotNull(profile);
             List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
@@ -38,10 +44,11 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(6)]
+        [InlineData(23)]
         public async void Update(int tableId)
         {
             SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
             Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
             List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
 
@@ -59,10 +66,11 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(6)]
+        [InlineData(23)]
         public async void Count(int tableId)
         {
             SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
             long count = await sclm.CountAsync(tableId);
             Assert.True(count > 0);
             count = await sclm.LogCountAsync(tableId, (DateTime.Now.AddDays(-25)));
@@ -72,10 +80,11 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(6)]
+        [InlineData(23)]
         public async void Find(int tableId)
         {
             SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
             Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
             profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile1());
             profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile2());
@@ -90,11 +99,8 @@ namespace Tests
             results = sclm.FindAsync<Profile>(tableId, "[age][lte][30]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
-            //поле "name" начинается с символа "A"
-            results = sclm.FindAsync<Profile>(tableId, "[name][sw][\"A\"]", "age", 1, 0, 100).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, "[name][sw][\"A\"]", "age", 1, 0, 100).Result;
+            //поле "name" начинается с символа "T"
+            results = sclm.FindAsync<Profile>(tableId, "[name][sw][\"T\"]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //поле "name" содержит строку "ad"
@@ -135,28 +141,30 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(6)]
-        public async void Delete(int tableId)
+        [InlineData(23)]
+        public async Task Delete(int tableId)
         {
             SCLM sclm = SCLM.Instance;
-            IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            await sclm.AuthAsync(clientId, secret);
+            IEnumerable<Profile> results = await sclm.FindAsync<Profile>(tableId, 0, 1000);
             Assert.True(results.Count() > 0);
 
-            ApiLog deleteResult = sclm.DeleteAsync(tableId, results.First()._id).Result;
+            Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, results.First()._id);
             Assert.NotNull(deleteResult);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 100).Result;
+            results = await sclm.FindAsync<Profile>(tableId, 0, 100);
             Assert.True(results.Count() > 0);
 
-            IEnumerable<ApiLog> deleteResults = sclm.DeleteAsync(tableId, results.Select(t=> t._id)).Result;
+            IEnumerable<Profile> deleteResults = sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id)).Result;
             Assert.True(deleteResults.Count() > 0);
         }
 
         [Theory]
-        [InlineData(6)]
+        [InlineData(23)]
         public async void Full(int tableId)
         {
             SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
             IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
             Assert.True(results.Count() > 0);
 

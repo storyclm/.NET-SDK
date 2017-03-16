@@ -1,9 +1,11 @@
 ﻿/*!
-* StoryCLM.SDK Library v0.5.0
+* StoryCLM.SDK Library v1.0.0
 * Copyright(c) 2016, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
+using StoryCLM.SDK.Extensions;
 using StoryCLM.SDK.Models;
 using System;
 using System.Collections.Generic;
@@ -45,8 +47,11 @@ namespace StoryCLM.SDK
         const string kMediaTypeHeader = "application/json";
         const string kTables = @"/v1/tables/";
         const string kWebHooks = @"/v1/webhooks/";
+
+        public Token Token { get; private set; }
+
         const string endpoint = "https://api.storyclm.com";
-        //const string endpoint = "https://localhost:44330";
+        const string authEndpoint = "https://auth.storyclm.com";
 
         private string ToParamString(string[] param)
         {
@@ -115,6 +120,7 @@ namespace StoryCLM.SDK
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                client.SetToken(Token);
                 HttpResponseMessage response = await client.PostAsync(resource, 
                     new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
                 result = await response.Content.ReadAsStringAsync();
@@ -135,6 +141,7 @@ namespace StoryCLM.SDK
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                client.SetToken(Token);
                 HttpResponseMessage response = await client.PutAsync(resource,
                     new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
                 result = await response.Content.ReadAsStringAsync();
@@ -155,6 +162,7 @@ namespace StoryCLM.SDK
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                client.SetToken(Token);
                 HttpResponseMessage response = await client.GetAsync(resource + query);
                 result = await response.Content.ReadAsStringAsync();
                 if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
@@ -174,11 +182,48 @@ namespace StoryCLM.SDK
             {
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                client.SetToken(Token);
                 HttpResponseMessage response = await client.DeleteAsync(resource + query);
                 result = await response.Content.ReadAsStringAsync();
                 if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
+        }
+
+        #endregion
+
+        #region Auth
+
+        public async Task<Token> AuthAsync(string clientId, string secret)
+        {
+            Token token = null;
+            var values = new Dictionary<string, string>()
+                {
+                    { "grant_type", "client_credentials"},
+                    { "client_id", clientId},
+                    { "client_secret", secret},
+                };
+            using (var handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            })
+            using (var client = new HttpClient(handler))
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                HttpResponseMessage response = await client.PostAsync(authEndpoint + "/connect/token", new FormUrlEncodedContent(values));
+                var result = await response.Content.ReadAsStringAsync();
+                if (!(response.StatusCode != System.Net.HttpStatusCode.Created || response.StatusCode != System.Net.HttpStatusCode.OK)) ThrowResponseException(response, result);
+                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest) throw new Exception(JObject.Parse(result)["error"].ToString());
+                var t = JObject.Parse(result);
+                token = new Token()
+                {
+                    AccessToken = t["access_token"].ToString(),
+                    ExpiresIn = t["expires_in"].ToString(),
+                    TokenType = t["token_type"].ToString(),
+                };
+            }
+            Token = token;
+            return token;
         }
 
         #endregion
@@ -389,6 +434,8 @@ namespace StoryCLM.SDK
 
         #endregion
 
+        #region Hooks
+
         /// <summary>
         /// Вызывает WebHook
         /// </summary>
@@ -400,6 +447,7 @@ namespace StoryCLM.SDK
         public async Task<string> WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => 
             await POSTAsync(kWebHooks + "/" + id + "/" + key, content, contentType);
 
+        #endregion
 
     }
 }
