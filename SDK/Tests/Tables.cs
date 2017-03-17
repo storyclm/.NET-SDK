@@ -155,7 +155,7 @@ namespace Tests
             results = await sclm.FindAsync<Profile>(tableId, 0, 100);
             Assert.True(results.Count() > 0);
 
-            IEnumerable<Profile> deleteResults = sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id)).Result;
+            IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id));
             Assert.True(deleteResults.Count() > 0);
         }
 
