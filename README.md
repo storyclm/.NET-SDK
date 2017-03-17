@@ -470,7 +470,7 @@ IEnumerable<Profile> profiles = sclm.FindAsync<Profile>(tableId, 0, 1000).Result
 
 **Возвращаемое значение:**
 
-Сущность в таблице
+Коллекция объектов.
 
 **Пример:**
 ```cs
