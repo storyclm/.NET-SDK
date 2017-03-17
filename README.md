@@ -64,23 +64,32 @@ Tokent token = await sclm.AuthAsync(clientId, secret);
 Токен автоматически сохраняется. Стоит учитывать, что токен "живет" один час. 
 После чего нужно получуть новый токен, вызвав метод AuthAsync.
 
-## Примеры
+## Таблицы
 
-### Таблицы
 
-[Таблицы](https://github.com/storyclm/documentation/blob/master/TABLES.md) - это релиационное хранилище данных.
+[Таблицы](https://github.com/storyclm/documentation/blob/master/TABLES.md) - это реляционное хранилище данных.
 
 *Более подробная информация содержится в разделе ["Таблицы"](https://github.com/storyclm/documentation/blob/master/TABLES.md) документации.*
 
-**Получить все таблицы клиента**
+#### Method: Task\<T> FindAsync\<T>(int tableId, string id)
+
+**Описание:**
+
+Получить запись таблицы по идентификатору.
+
+**Параметры:**
+* T - параметризованный тип (generic), описывающий сущность в таблице.
+* tableId - Идентификатор таблицы в базе данных.
+
+**Возвращаемое значение:**
+
+Сущность в таблице
+
+**Пример:**
 ```cs
+{
 SCLM sclm = SCLM.Instance;
-IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(clientId);
-```
-
-Для работы с таблицей создадим объект Profile. Этот объект будет соотвествовать записи в таблице "Profile".
-```cs
-
+}
 ```
 
 
