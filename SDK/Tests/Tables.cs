@@ -198,5 +198,7 @@ namespace Tests
 
         
     }
-    
+
+    //nuget pack D:\.NET-SDK\SDK\StoryCLM.SDK\StoryCLM.SDK.csproj -properties Configuration=Release
+
 }

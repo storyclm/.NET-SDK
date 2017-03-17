@@ -1,0 +1,20 @@
+<?xml version="1.0"?>
+<package >
+  <metadata>
+    <id>StoryCLM</id>
+    <version>1.0.0</version>
+    <authors>Breffi LLC</authors>
+    <owners>Breffi LLC</owners>
+    <licenseUrl>https://github.com/storyclm/.NET-SDK/blob/master/LICENSE</licenseUrl>
+    <projectUrl>https://github.com/storyclm/.NET-SDK</projectUrl>
+    <iconUrl>https://storyclm.com/images/logo.png</iconUrl>
+    <requireLicenseAcceptance>false</requireLicenseAcceptance>
+    <description>StoryCLM — a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</description>
+    <releaseNotes></releaseNotes>
+    <copyright>© 2017. BREFFI</copyright>
+    <tags>StoryCLM</tags>
+    <dependencies>
+      <dependency id="Newtonsoft.Json" version="9.0.1" />
+    </dependencies>
+  </metadata>
+</package>
