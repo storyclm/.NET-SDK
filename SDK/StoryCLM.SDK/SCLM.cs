@@ -445,7 +445,7 @@ namespace StoryCLM.SDK
         /// <param name="contentType">Content-Type, default application/json</param>
         /// <returns></returns>
         public async Task<string> WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => 
-            await POSTAsync(kWebHooks + "/" + id + "/" + key, content, contentType);
+            await POSTAsync(kWebHooks + id + "/" + key, content, contentType);
 
         #endregion
 

@@ -17,7 +17,7 @@ namespace Tests
    public class Tables
     {
         const string clientId = "client_18";
-        const string secret = "";
+        const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de6";
 
         [Fact]
         public async void GetTables()

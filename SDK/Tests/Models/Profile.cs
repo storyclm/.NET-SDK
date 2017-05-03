@@ -135,7 +135,7 @@ namespace Tests.Models
         {
             Profile test = new Profile()
             {
-                Name = "Vladimir",
+                Name = "Taran",
                 Age = 28,
                 Gender = true,
                 Rating = 2.2D,
