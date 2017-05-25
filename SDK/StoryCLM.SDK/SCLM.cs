@@ -50,8 +50,11 @@ namespace StoryCLM.SDK
 
         public Token Token { get; private set; }
 
-        const string endpoint = "https://api.storyclm.com";
-        const string authEndpoint = "https://auth.storyclm.com";
+        //const string endpoint = "https://api.storyclm.com";
+        //const string authEndpoint = "https://auth.storyclm.com";
+        const string endpoint = "https://localhost:44330";
+        const string authEndpoint = "https://localhost:44331";
+
 
         private string ToParamString(string[] param)
         {
@@ -247,36 +250,19 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
-        public async Task<long> CountAsync(int tableId) => 
-            (await GETAsync<ApiCount>(kTables + tableId + "/count", string.Empty)).Count;
+        public async Task<long> CountAsync(int tableId, string query = null) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/count", string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Count;
 
-        /// <summary>
-        /// Таблицы.
-        /// Колличество записей в таблице по запросу.
-        /// </summary>
-        /// <param name="tableId">Идентификатор таблицы</param>
-        /// <returns></returns>
-        public async Task<long> CountAsync(int tableId, string query) => 
-            (await GETAsync<ApiCount>(kTables + tableId + "/countbyquery/" + ToBase64(query), string.Empty)).Count;
 
         /// <summary>
         /// Таблицы.
         /// Колличество записей лога таблицы.
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
+        /// <param name="date">Дата, после которой будет произведена выборка. Необязательный параметр.</param>
         /// <returns></returns>
-        public async Task<long> LogCountAsync(int tableId) => 
-            (await GETAsync<ApiCount>(kTables + tableId + "/logcount", string.Empty)).Count;
-
-        /// <summary>
-        /// Таблицы.
-        /// Колличество записей лога после указанной даты.
-        /// </summary>
-        /// <param name="tableId">Идентификатор таблицы</param>
-        /// <param name="date">Дата, после которой будет произведена выборка</param>
-        /// <returns></returns>
-        public async Task<long> LogCountAsync(int tableId, DateTime date) => 
-            (await GETAsync<ApiCount>(kTables + tableId + "/logcountbydate/" + ConvertToUnixTime(date).ToString(), string.Empty)).Count;
+        public async Task<long> LogCountAsync(int tableId, DateTime? date = null) => 
+            (await GETAsync<ApiCount>(kTables + tableId + "/logcount", date == null ? string.Empty : $"?date={ConvertToUnixTime(date.Value).ToString()}")).Count;
 
         #endregion
 
@@ -293,6 +279,16 @@ namespace StoryCLM.SDK
         public async Task<T> FindAsync<T>(int tableId, string id) where T : class, new() => 
             await GETAsync<T>(kTables + tableId + "/findbyid/" + id, string.Empty);
 
+        /// <summary>
+        /// Таблицы.
+        /// Найти записи в таблице по списку идентификаторов.
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="tableId">Идентификатор таблицы</param>
+        /// <param name="ids">Список идентификаторов записей в таблице</param>
+        /// <returns></returns>
+        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() =>
+            await GETAsync<IEnumerable<T>>(kTables + tableId + "/findbyids", ToParamString(ids.ToArray()));
 
         /// <summary>
         /// Таблицы.
@@ -306,33 +302,15 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, string query, string sortfield, int sort = 1, int skip = 0, int take = 100) where T : class, new()
+        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, string query = null, string sortfield = null, int? sort = null, int skip = 0, int take = 100) where T : class, new()
         {
-            string resource = kTables + tableId + "/find/" + query + "/" + sortfield + "/" + sort.ToString() + "/" + skip + "/" + take;
+            string resource = kTables + tableId + $"/find?skip={skip}&take={take}"
+                + (sort == null ? "" : $"&sort={sort}")
+                + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}") 
+                + (string.IsNullOrEmpty(query) ? "" : $"&query={query}");
             return await GETAsync<IEnumerable<T>>(resource, string.Empty);
         }
 
-        /// <summary>
-        /// Таблицы.
-        /// Найти записи в таблице по списку идентификаторов.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="tableId">Идентификатор таблицы</param>
-        /// <param name="ids">Список идентификаторов записей в таблице</param>
-        /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() => 
-            await GETAsync<IEnumerable<T>>(kTables + tableId + "/findbyids", ToParamString(ids.ToArray()));
-
-        /// <summary>
-        /// Таблицы.
-        /// </summary>
-        /// <typeparam name="T"></typeparam>
-        /// <param name="tableId">Идентификатор таблицы</param>
-        /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
-        /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
-        /// <returns></returns>
-        public async Task<IEnumerable<T>> FindAsync<T>(int tableId, int skip = 0, int take = 100) where T : class, new() => 
-            await GETAsync<IEnumerable<T>>(kTables + tableId + "/findall/" + skip + "/" + take, string.Empty);
 
         #endregion
 
@@ -342,22 +320,13 @@ namespace StoryCLM.SDK
         /// Таблицы.
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
+        /// <param name="date">Дата, после которой будет произведена выборка. Необязательный параметр.</param>
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, int skip = 0, int take = 100) => 
-            await GETAsync<IEnumerable<ApiLog>> (kTables + tableId + "/log/" + skip + "/" + take, string.Empty);
-
-        /// <summary>
-        /// Таблицы.
-        /// </summary>
-        /// <param name="tableId">Идентификатор таблицы</param>
-        /// <param name="date">Дата, после которой будет произведена выборка</param>
-        /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
-        /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
-        /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime date, int skip = 0, int take = 100) => 
-            await GETAsync<IEnumerable<ApiLog>>(kTables + tableId + "/logbydate/" + ConvertToUnixTime(date).ToString() + "/" + skip + "/" + take, string.Empty);
+        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime? date = null, int skip = 0, int take = 100) => 
+            await GETAsync<IEnumerable<ApiLog>> (kTables + tableId + $"/log?skip={skip}&take={take}" + 
+                (date == null ? string.Empty : $"&date={ConvertToUnixTime(date.Value).ToString()}"), string.Empty);
 
         #endregion
 

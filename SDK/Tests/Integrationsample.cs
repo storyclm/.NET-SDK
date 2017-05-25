@@ -26,7 +26,7 @@ namespace Tests
             SCLM sclm = SCLM.Instance;
             await sclm.AuthAsync(clientId, secret);
             List<Contact> contacts = new List<Contact>(await sclm.InsertAsync<Contact>(tableId, Contact.CreateContacts()));
-            contacts = new List<Contact>(await sclm.FindAsync<Contact>(tableId, 0, 100));
+            contacts = new List<Contact>(await sclm.FindAsync<Contact>(tableId, skip: 0, take: 100));
             Contact.UpdateContacts(contacts);
             await sclm.UpdateAsync<Contact>(tableId, contacts);
             await sclm.DeleteAsync<Contact>(tableId, contacts.Select(t=>t._id));

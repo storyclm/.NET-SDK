@@ -16,8 +16,13 @@ namespace Tests
 {
    public class Tables
     {
-        const string clientId = "client_18";
-        const string secret = "";
+        //const string clientId = "client_18";
+        //const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de6";
+        //const int tableId = 23;
+
+        const string clientId = "client_1";
+        const string secret = "ffdc03fe212f4c329de30c876ecae53c8f805e667f554e2a96c422917f06dc47";
+        const int tableId = 6;
 
         [Fact]
         public async void GetTables()
@@ -31,7 +36,7 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
         public async void Insert(int tableId)
         {
             SCLM sclm = SCLM.Instance;
@@ -44,7 +49,7 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
         public async void Update(int tableId)
         {
             SCLM sclm = SCLM.Instance;
@@ -66,21 +71,43 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
         public async void Count(int tableId)
         {
             SCLM sclm = SCLM.Instance;
             await sclm.AuthAsync(clientId, secret);
             long count = await sclm.CountAsync(tableId);
             Assert.True(count > 0);
-            count = await sclm.LogCountAsync(tableId, (DateTime.Now.AddDays(-25)));
+            count = await sclm.CountAsync(tableId, "[Gender][eq][false]");
             Assert.True(count > 0);
-            count = await sclm.CountAsync(tableId, "[age][gt][30]");
+            count = await sclm.LogCountAsync(tableId);
+            Assert.True(count > 0);
+            count = await sclm.LogCountAsync(tableId, DateTime.Now.AddDays(-5));
             Assert.True(count > 0);
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
+        public async void Log(int tableId)
+        {
+            SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
+
+            IEnumerable<ApiLog> logs = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-5), 0, 900);
+            Assert.True(logs.Count() > 0);
+
+            logs = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-5));
+            Assert.True(logs.Count() > 0);
+
+            logs = await sclm.LogAsync(tableId, skip: 0, take: 900);
+            Assert.True(logs.Count() > 0);
+
+            logs = await sclm.LogAsync(tableId);
+            Assert.True(logs.Count() > 0);
+        }
+
+        [Theory]
+        [InlineData(tableId)]
         public async void Find(int tableId)
         {
             SCLM sclm = SCLM.Instance;
@@ -92,7 +119,27 @@ namespace Tests
             profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile4());
             List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
 
-            IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            //Получить объект по идентификатору
+            profile = await sclm.FindAsync<Profile>(tableId, profile._id);
+            Assert.NotNull(profile);
+
+            //Получить коллекцию записей по списку идентификаторов
+            IEnumerable<Profile>  results = await sclm.FindAsync<Profile>(tableId, profiles.Select(t => t._id).ToArray());
+            Assert.True(results.Count() > 0);
+
+            results = await sclm.FindAsync<Profile>(tableId, "[Gender][eq][false]", "age", 1, 0, 100);
+            Assert.True(results.Count() > 0);
+
+            results = await sclm.FindAsync<Profile>(tableId, sortfield: "age", sort: 1, skip: 0, take: 100);
+            Assert.True(results.Count() > 0);
+
+            results = await sclm.FindAsync<Profile>(tableId, sortfield: "age", skip: 0, take: 100);
+            Assert.True(results.Count() > 0);
+
+            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 100);
+            Assert.True(results.Count() > 0);
+
+            results = await sclm.FindAsync<Profile>(tableId);
             Assert.True(results.Count() > 0);
 
             //возраст меньше или равен 30
@@ -131,28 +178,21 @@ namespace Tests
 
             #endregion
 
-            //Получить запись по идентификатору
-            profile = await sclm.FindAsync<Profile>(tableId, profile._id);
-            Assert.NotNull(profile);
-
-            ////Получить коллекцию записей по списку идентификаторов
-            results = await sclm.FindAsync<Profile>(tableId, profiles.Select(t => t._id).ToArray());
-            Assert.True(results.Count() > 0);
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
         public async Task Delete(int tableId)
         {
             SCLM sclm = SCLM.Instance;
             await sclm.AuthAsync(clientId, secret);
-            IEnumerable<Profile> results = await sclm.FindAsync<Profile>(tableId, 0, 1000);
+            IEnumerable<Profile> results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000);
             Assert.True(results.Count() > 0);
 
             Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, results.First()._id);
             Assert.NotNull(deleteResult);
 
-            results = await sclm.FindAsync<Profile>(tableId, 0, 100);
+            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 10);
             Assert.True(results.Count() > 0);
 
             IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id));
@@ -160,39 +200,39 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(23)]
+        [InlineData(tableId)]
         public async void Full(int tableId)
         {
             SCLM sclm = SCLM.Instance;
             await sclm.AuthAsync(clientId, secret);
-            IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
 
-            results = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
             Assert.True(results.Count() > 0);
         }
 
