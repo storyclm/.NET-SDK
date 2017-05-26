@@ -25,22 +25,22 @@ namespace Tests.Models
         /// <summary>
         /// Возраст
         /// </summary>
-        public long Age { get; set; }
+        public long? Age { get; set; }
 
         /// <summary>
         /// Пол
         /// </summary>
-        public bool Gender { get; set; }
+        public bool? Gender { get; set; }
 
         /// <summary>
         /// Рейтинг
         /// </summary>
-        public double Rating { get; set; }
+        public double? Rating { get; set; }
 
         /// <summary>
         /// Дата регистрации
         /// </summary>
-        public DateTime Created { get; set; }
+        public DateTime? Created { get; set; }
 
         public override bool Equals(object obj)
         {

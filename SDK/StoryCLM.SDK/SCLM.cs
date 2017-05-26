@@ -17,14 +17,14 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK
 {
-   public class SCLM
+    public class SCLM
     {
         #region Singleton
 
         private static volatile SCLM instance;
         private static object syncRoot = new Object();
 
-        private SCLM() {}
+        private SCLM() { }
 
         public static SCLM Instance
         {
@@ -50,11 +50,8 @@ namespace StoryCLM.SDK
 
         public Token Token { get; private set; }
 
-        //const string endpoint = "https://api.storyclm.com";
-        //const string authEndpoint = "https://auth.storyclm.com";
-        const string endpoint = "https://localhost:44330";
-        const string authEndpoint = "https://localhost:44331";
-
+        const string endpoint = "https://api.storyclm.com";
+        const string authEndpoint = "https://auth.storyclm.com";
 
         private string ToParamString(string[] param)
         {
@@ -104,9 +101,10 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
                 HttpResponseMessage response = await client.PostAsync(resource, new StringContent(content, Encoding.UTF8, contentType));
-                result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return null;
                 if (!(response.StatusCode != System.Net.HttpStatusCode.Created ||
                     response.StatusCode != System.Net.HttpStatusCode.OK)) ThrowResponseException(response, result);
+                result = await response.Content.ReadAsStringAsync();
             }
             return result;
         }
@@ -124,10 +122,11 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Clear();
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
                 client.SetToken(Token);
-                HttpResponseMessage response = await client.PostAsync(resource, 
+                HttpResponseMessage response = await client.PostAsync(resource,
                     new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
-                result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
                 if (response.StatusCode != System.Net.HttpStatusCode.Created) ThrowResponseException(response, result);
+                result = await response.Content.ReadAsStringAsync();
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -147,8 +146,9 @@ namespace StoryCLM.SDK
                 client.SetToken(Token);
                 HttpResponseMessage response = await client.PutAsync(resource,
                     new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
-                result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
+                result = await response.Content.ReadAsStringAsync();
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -167,8 +167,9 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
                 client.SetToken(Token);
                 HttpResponseMessage response = await client.GetAsync(resource + query);
-                result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
+                result = await response.Content.ReadAsStringAsync();
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -187,8 +188,9 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
                 client.SetToken(Token);
                 HttpResponseMessage response = await client.DeleteAsync(resource + query);
-                result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
                 if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
+                result = await response.Content.ReadAsStringAsync();
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -239,7 +241,7 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="clientId">Идентификатор клиента в базе данных</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiTable>> GetTablesAsync(int clientId) => 
+        public async Task<IEnumerable<ApiTable>> GetTablesAsync(int clientId) =>
             await GETAsync<IEnumerable<ApiTable>>(kTables + clientId + "/tables", string.Empty);
 
         #region Count
@@ -250,7 +252,7 @@ namespace StoryCLM.SDK
         /// </summary>
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
-        public async Task<long> CountAsync(int tableId, string query = null) => 
+        public async Task<long> CountAsync(int tableId, string query = null) =>
             (await GETAsync<ApiCount>(kTables + tableId + "/count", string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Count;
 
 
@@ -261,7 +263,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="date">Дата, после которой будет произведена выборка. Необязательный параметр.</param>
         /// <returns></returns>
-        public async Task<long> LogCountAsync(int tableId, DateTime? date = null) => 
+        public async Task<long> LogCountAsync(int tableId, DateTime? date = null) =>
             (await GETAsync<ApiCount>(kTables + tableId + "/logcount", date == null ? string.Empty : $"?date={ConvertToUnixTime(date.Value).ToString()}")).Count;
 
         #endregion
@@ -276,7 +278,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
-        public async Task<T> FindAsync<T>(int tableId, string id) where T : class, new() => 
+        public async Task<T> FindAsync<T>(int tableId, string id) where T : class, new() =>
             await GETAsync<T>(kTables + tableId + "/findbyid/" + id, string.Empty);
 
         /// <summary>
@@ -306,7 +308,7 @@ namespace StoryCLM.SDK
         {
             string resource = kTables + tableId + $"/find?skip={skip}&take={take}"
                 + (sort == null ? "" : $"&sort={sort}")
-                + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}") 
+                + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}")
                 + (string.IsNullOrEmpty(query) ? "" : $"&query={query}");
             return await GETAsync<IEnumerable<T>>(resource, string.Empty);
         }
@@ -324,8 +326,8 @@ namespace StoryCLM.SDK
         /// <param name="skip">Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.</param>
         /// <param name="take">Максимальное количество записей, которые будут получены. По умолчанию - 100.</param>
         /// <returns></returns>
-        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime? date = null, int skip = 0, int take = 100) => 
-            await GETAsync<IEnumerable<ApiLog>> (kTables + tableId + $"/log?skip={skip}&take={take}" + 
+        public async Task<IEnumerable<ApiLog>> LogAsync(int tableId, DateTime? date = null, int skip = 0, int take = 100) =>
+            await GETAsync<IEnumerable<ApiLog>>(kTables + tableId + $"/log?skip={skip}&take={take}" +
                 (date == null ? string.Empty : $"&date={ConvertToUnixTime(date.Value).ToString()}"), string.Empty);
 
         #endregion
@@ -340,7 +342,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns>Новая запись с добавлением идендификатора</returns>
-        public async Task<T> InsertAsync<T>(int tableId, T o) where T : class, new() => 
+        public async Task<T> InsertAsync<T>(int tableId, T o) where T : class, new() =>
             await POSTAsync<T>(kTables + tableId + "/insert", o);
 
         /// <summary>
@@ -350,7 +352,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> InsertAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() => 
+        public async Task<IEnumerable<T>> InsertAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() =>
             await POSTAsync<IEnumerable<T>>(kTables + tableId + "/insertmany", o);
 
         #endregion
@@ -364,7 +366,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<T> UpdateAsync<T>(int tableId, T o) where T : class, new() => 
+        public async Task<T> UpdateAsync<T>(int tableId, T o) where T : class, new() =>
             await PUTAsync<T>(kTables + tableId + "/update", o);
 
         /// <summary>
@@ -374,7 +376,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="o">Сущность</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> UpdateAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() => 
+        public async Task<IEnumerable<T>> UpdateAsync<T>(int tableId, IEnumerable<T> o) where T : class, new() =>
             await PUTAsync<IEnumerable<T>>(kTables + tableId + "/updatemany", o);
 
         #endregion
@@ -387,7 +389,7 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
-        public async Task<T> DeleteAsync<T>(int tableId, string id) where T : class, new() => 
+        public async Task<T> DeleteAsync<T>(int tableId, string id) where T : class, new() =>
             await DELETEAsync<T>(kTables + tableId + "/delete/" + id, string.Empty);
 
         /// <summary>
@@ -396,27 +398,60 @@ namespace StoryCLM.SDK
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
-        public async Task<IEnumerable<T>> DeleteAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() => 
+        public async Task<IEnumerable<T>> DeleteAsync<T>(int tableId, IEnumerable<string> ids) where T : class, new() =>
             await DELETEAsync<IEnumerable<T>>(kTables + tableId + "/deletemany", ToParamString(ids.ToArray()));
 
         #endregion
 
+        #region Aggregation
+
+        private class AggregationResult<T>
+        {
+            public T Result { get; set; }
+        }
+
+        public async Task<T> MaxAsync<T>(int tableId, string field, string query = null) where T : IConvertible
+        {
+            return (await GETAsync<AggregationResult<T>>(kTables + tableId + "/max/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
+        }
+
+        public async Task<T> MinAsync<T>(int tableId, string field, string query = null) where T : IConvertible
+        {
+            return (await GETAsync<AggregationResult<T>>(kTables + tableId + "/min/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
+        }
+
+        public async Task<T> SumAsync<T>(int tableId, string field, string query = null) where T : IConvertible
+        {
+            return (await GETAsync<AggregationResult<T>>(kTables + tableId + "/sum/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
+        }
+
+        public async Task<double> AvgAsync(int tableId, string field, string query = null)
+        {
+            return (await GETAsync<AggregationResult<double>>(kTables + tableId + "/avg/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
+        }
+
+        private async Task<T> FLAsync<T>(int tableId, bool first, string query = null, string sortfield = null, int? sort = null) where T : class, new()
+        {
+            var q = query == null && sortfield == null && sort == null ? "" : "?";
+            var f = first ? "first" : "last";
+            string resource = kTables + tableId + $"/{f}{q}"
+                + (sort == null ? "" : $"&sort={sort}")
+                + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}")
+                + (string.IsNullOrEmpty(query) ? "" : $"&query={query}");
+            return await GETAsync<T>(resource, string.Empty);
+        }
+
+        public async Task<T> FirstAsync<T>(int tableId, string query = null, string sortfield = null, int? sort = null) where T : class, new() =>
+            await FLAsync<T>(tableId, true, query: query, sortfield: sortfield, sort: sort);
+
+        public async Task<T> LastAsync<T>(int tableId, string query = null, string sortfield = null, int? sort = null) where T : class, new() =>
+            await FLAsync<T>(tableId, false, query: query, sortfield: sortfield, sort: sort);
+
+
         #endregion
 
-        #region Hooks
-
-        /// <summary>
-        /// Вызывает WebHook
-        /// </summary>
-        /// <param name="id">Идентификатор хука</param>
-        /// <param name="key">Секретный ключ</param>
-        /// <param name="content">Данные, которые будут переданы в хук</param>
-        /// <param name="contentType">Content-Type, default application/json</param>
-        /// <returns></returns>
-        public async Task<string> WebHookAsync(string id, string key, string content, string contentType = kMediaTypeHeader) => 
-            await POSTAsync(kWebHooks + id + "/" + key, content, contentType);
-
         #endregion
+
 
     }
 }

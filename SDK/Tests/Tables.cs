@@ -16,20 +16,17 @@ namespace Tests
 {
    public class Tables
     {
-        //const string clientId = "client_18";
-        //const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de6";
-        //const int tableId = 23;
+        const string clientId = "client_18";
+        const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de6";
+        const int tableId = 23;
 
-        const string clientId = "client_1";
-        const string secret = "ffdc03fe212f4c329de30c876ecae53c8f805e667f554e2a96c422917f06dc47";
-        const int tableId = 6;
-
-        [Fact]
-        public async void GetTables()
+        [Theory]
+        [InlineData(18)]
+        public async void GetTables(int id)
         {
             SCLM sclm = SCLM.Instance;
             await sclm.AuthAsync(clientId, secret);
-            IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(18);
+            IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(id);
             ApiTable table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
             Assert.True(tables.Count() > 0);
             Assert.NotNull(table);
@@ -104,6 +101,62 @@ namespace Tests
 
             logs = await sclm.LogAsync(tableId);
             Assert.True(logs.Count() > 0);
+        }
+
+        [Theory]
+        [InlineData(tableId)]
+        public async void Aggregation(int tableId)
+        {
+            SCLM sclm = SCLM.Instance;
+            await sclm.AuthAsync(clientId, secret);
+
+            var boolResult = await sclm.MaxAsync<bool>(tableId, "Gender");
+            var intResult = await sclm.MaxAsync<int>(tableId, "Age");
+            var stringResult = await sclm.MaxAsync<string>(tableId, "Name");
+            var datetimeResult = await sclm.MaxAsync<DateTime>(tableId, "Created");
+            var doubleResult = await sclm.MaxAsync<double>(tableId, "Rating");
+
+            var boolQueryResult = await sclm.MaxAsync<bool>(tableId, "Gender", "[Gender][eq][false]");
+            var intQueryResult = await sclm.MaxAsync<int>(tableId, "Age", "[Gender][eq][false]");
+            var stringQueryResult = await sclm.MaxAsync<string>(tableId, "Name", "[Gender][eq][false]");
+            var datetimeQueryResult = await sclm.MaxAsync<DateTime>(tableId, "Created", "[Gender][eq][false]");
+            var doubleQueryResult = await sclm.MaxAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+
+            var boolMinResult = await sclm.MinAsync<bool>(tableId, "Gender");
+            var intMinResult = await sclm.MinAsync<int>(tableId, "Age");
+            var stringMinResult = await sclm.MinAsync<string>(tableId, "Name");
+            var datetimeMinResult = await sclm.MinAsync<DateTime>(tableId, "Created");
+            var doubleMinResult = await sclm.MinAsync<double>(tableId, "Rating");
+
+            var boolQueryMinResult = await sclm.MinAsync<bool>(tableId, "Gender", "[Gender][eq][true]");
+            var intQueryMinResult = await sclm.MinAsync<int>(tableId, "Age", "[Gender][eq][true]");
+            var stringQueryMinResult = await sclm.MinAsync<string>(tableId, "Name", "[Gender][eq][true]");
+            var datetimeQueryMinResult = await sclm.MinAsync<DateTime>(tableId, "Created", "[Gender][eq][true]");
+            var doubleQueryMinResult = await sclm.MinAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+
+            var boolSumResult = await sclm.SumAsync<bool>(tableId, "Gender");
+            var intSumResult = await sclm.SumAsync<long>(tableId, "Age");
+            var doubleSumResult = await sclm.SumAsync<double>(tableId, "Rating");
+
+            var boolQuerySumResult = await sclm.SumAsync<bool>(tableId, "Gender", "[Gender][eq][true]");
+            var intQuerySumResult = await sclm.SumAsync<int>(tableId, "Age", "[Gender][eq][true]");
+            var doubleQuerySumResult = await sclm.SumAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+
+            var intAvgResult = await sclm.AvgAsync(tableId, "Age");
+            var doubleAvgResult = await sclm.AvgAsync(tableId, "Rating");
+
+            var intQueryAvgResult = await sclm.AvgAsync(tableId, "Age", "[Gender][eq][true]");
+            var doubleQueryAvgResult = await sclm.AvgAsync(tableId, "Rating", "[Gender][eq][false]");
+
+            Profile profile = await sclm.FirstAsync<Profile>(tableId, "[Age][eq][33]", "age", 1);
+            Profile profile1 = await sclm.FirstAsync<Profile>(tableId, sortfield: "age", sort: 1);
+            Profile profile2 = await sclm.FirstAsync<Profile>(tableId, sortfield: "age");
+            Profile profile3 = await sclm.FirstAsync<Profile>(tableId);
+
+            Profile profile4 = await sclm.LastAsync<Profile>(tableId, "[Age][eq][22]", "age", 1);
+            Profile profile5 = await sclm.LastAsync<Profile>(tableId, sortfield: "age", sort: 1);
+            Profile profile6 = await sclm.LastAsync<Profile>(tableId, sortfield: "age");
+            Profile profile7 = await sclm.LastAsync<Profile>(tableId);
         }
 
         [Theory]
