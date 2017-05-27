@@ -1,5 +1,5 @@
 ﻿/*!
-* StoryCLM.SDK Library v1.0.0
+* StoryCLM.SDK Library v1.3.0
 * Copyright(c) 2017, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
@@ -17,7 +17,7 @@ namespace Tests
    public class Tables
     {
         const string clientId = "client_18";
-        const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de6";
+        const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de61";
         const int tableId = 23;
 
         [Theory]
@@ -245,51 +245,13 @@ namespace Tests
             Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, results.First()._id);
             Assert.NotNull(deleteResult);
 
-            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 10);
+            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 60);
             Assert.True(results.Count() > 0);
 
             IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id));
             Assert.True(deleteResults.Count() > 0);
         }
 
-        [Theory]
-        [InlineData(tableId)]
-        public async void Full(int tableId)
-        {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            IEnumerable<Profile> results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-
-            results = sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000).Result;
-            Assert.True(results.Count() > 0);
-        }
-
-        
     }
 
     //nuget pack D:\.NET-SDK\SDK\StoryCLM.SDK\StoryCLM.SDK.csproj -properties Configuration=Release
