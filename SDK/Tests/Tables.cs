@@ -16,7 +16,7 @@ namespace Tests
 {
    public class Tables
     {
-        const int uc = 1;
+        const int uc = 0;
         const int clientId = 18;
         const int tableId = 23;
 
@@ -286,7 +286,5 @@ namespace Tests
         }
 
     }
-
-    //nuget pack D:\.NET-SDK\SDK\StoryCLM.SDK\StoryCLM.SDK.csproj -properties Configuration=Release
 
 }

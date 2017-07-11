@@ -218,17 +218,17 @@ namespace StoryCLM.SDK.Models
             public M Result { get; set; }
         }
 
-        public async Task<T> MaxAsync<T>(string field, string query = null) where T : IConvertible
+        public async Task<T> MaxAsync<T>(string field, string query = null)
         {
             return (await _sclm.GETAsync<AggregationResult<T>>(_sclm.kTables + Id + "/max/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
         }
 
-        public async Task<M> MinAsync<M>(string field, string query = null) where M : IConvertible
+        public async Task<M> MinAsync<M>(string field, string query = null)
         {
             return (await _sclm.GETAsync<AggregationResult<M>>(_sclm.kTables + Id + "/min/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
         }
 
-        public async Task<M> SumAsync<M>(string field, string query = null) where M : IConvertible
+        public async Task<M> SumAsync<M>(string field, string query = null)
         {
             return (await _sclm.GETAsync<AggregationResult<M>>(_sclm.kTables + Id + "/sum/" + field, string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")).Result;
         }

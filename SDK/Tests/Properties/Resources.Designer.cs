@@ -61,13 +61,13 @@ namespace Tests.Properties {
         }
         
         /// <summary>
-        ///   Looks up a localized string similar to &lt;?xml version = &quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
+        ///   Looks up a localized string similar to &lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt;
         ///&lt;soapenv:Envelope xmlns:soapenv=&quot;http://schemas.xmlsoap.org/soap/envelope/&quot; xmlns:xsd=&quot;http://www.w3.org/2001/XMLSchema&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt;
         ///  &lt;soapenv:Body&gt;
-        ///    &lt;notifications xmlns = &quot;http://soap.sforce.com/2005/09/outbound&quot; &gt;
-        ///      &lt;OrganizationId &gt; 00D0Y000000rcS3UAI&lt;/OrganizationId&gt;
+        ///    &lt;notifications xmlns=&quot;http://soap.sforce.com/2005/09/outbound&quot;&gt;
+        ///      &lt;OrganizationId&gt;00D0Y000000rcS3UAI&lt;/OrganizationId&gt;
         ///      &lt;ActionId&gt;04k0Y000000TNNxQAO&lt;/ActionId&gt;
-        ///      &lt;SessionId&gt;00D0Y000000rcS3!AQQAQCfVErLKLSUF9UvRyujg0QFM38EtNBMn3luV9FbVrtVCUcN.kkdU17oA1I [rest of string was truncated]&quot;;.
+        ///      &lt;SessionId&gt;00D0Y000000rcS3!AQQAQKj.oIbMjtRFOanAzE9uVgrsg2_wqHqdPeQCmG8oIw4eTFQHmZFFDsYBH5ikR9TLQ [rest of string was truncated]&quot;;.
         /// </summary>
         internal static string Salesforce {
             get {

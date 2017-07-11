@@ -1,11 +1,11 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 14
-VisualStudioVersion = 14.0.25420.1
+# Visual Studio 15
+VisualStudioVersion = 15.0.26430.4
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoryCLM.SDK", "StoryCLM.SDK\StoryCLM.SDK.csproj", "{8AD5EB9A-CADA-40BC-8265-E819B32F387E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Tests", "Tests\Tests.csproj", "{8BB0B255-D3D0-4C47-B20B-D5B026BD6A27}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoryCLM.SDK", "StoryCLM.SDK\StoryCLM.SDK.csproj", "{E62AECD9-B43C-4258-8101-FB7DEE70E664}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +13,14 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8AD5EB9A-CADA-40BC-8265-E819B32F387E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{8AD5EB9A-CADA-40BC-8265-E819B32F387E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{8AD5EB9A-CADA-40BC-8265-E819B32F387E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{8AD5EB9A-CADA-40BC-8265-E819B32F387E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{8BB0B255-D3D0-4C47-B20B-D5B026BD6A27}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{8BB0B255-D3D0-4C47-B20B-D5B026BD6A27}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{8BB0B255-D3D0-4C47-B20B-D5B026BD6A27}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{8BB0B255-D3D0-4C47-B20B-D5B026BD6A27}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E62AECD9-B43C-4258-8101-FB7DEE70E664}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E62AECD9-B43C-4258-8101-FB7DEE70E664}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E62AECD9-B43C-4258-8101-FB7DEE70E664}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E62AECD9-B43C-4258-8101-FB7DEE70E664}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
