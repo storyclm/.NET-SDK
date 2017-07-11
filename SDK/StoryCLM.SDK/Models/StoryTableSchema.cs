@@ -9,7 +9,7 @@ namespace StoryCLM.SDK.Models
     /// <summary>
     /// Элемент схемы таблицы
     /// </summary>
-    public class ApiTableSchema
+    public class StoryTableSchema
     {
         /// <summary>
         /// Название поля

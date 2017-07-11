@@ -16,50 +16,84 @@ namespace Tests
 {
    public class Tables
     {
-        const string clientId = "client_18";
-        const string secret = "595a2fb724604e51a1f9e43b808c76c915c2e0f74e8840b384218a0e354f6de61";
+        const int uc = 1;
+        const int clientId = 18;
         const int tableId = 23;
+
+
+        async Task<SCLM> GetContextAsync()
+        {
+            switch (uc)
+            {
+                case 0: // service
+                    {
+                        string clientId = "client_18_1";
+                        string secret = "";
+                        SCLM sclm = new SCLM();
+                        await sclm.AuthAsync(clientId, secret);
+                        return sclm;
+                    }
+                case 1: // application (user)
+                    {
+                        string username = "rsk-k161@ya.ru";
+                        string password = "";
+                        string clientId = "client_18_4";
+                        string secret = "";
+                        SCLM sclm = new SCLM();
+                        await sclm.AuthAsync(clientId, secret, username, password);
+                        return sclm;
+                    }
+            }
+            return null;
+        }
+
+        async Task<StoryTable<Profile>> GetTableAsync(SCLM sclm)
+        {
+            IEnumerable<StoryTable<Profile>> tables = await sclm.GetTablesAsync<Profile>(clientId);
+            StoryTable<Profile> table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
+            return table;
+        }
 
         [Theory]
         [InlineData(18)]
         public async void GetTables(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(id);
-            ApiTable table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
+            SCLM sclm = await GetContextAsync();
+            IEnumerable<StoryTable<Profile>> tables = await sclm.GetTablesAsync<Profile>(id);
+            StoryTable<Profile> table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
             Assert.True(tables.Count() > 0);
             Assert.NotNull(table);
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Insert(int tableId)
+        [InlineData(18)]
+        public async void Insert(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            await storyTable.InsertAsync(new Profile());
+            Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
             Assert.NotNull(profile);
-            List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
+            List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
             Assert.NotNull(profiles);
             Assert.True(profiles.Count() == 3);
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Update(int tableId)
+        [InlineData(18)]
+        public async void Update(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
-            List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
+            List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
 
             Assert.NotNull(profile);
             Assert.NotNull(profiles);
             Assert.True(profiles.Count() == 3);
 
-            Profile updatedProfile = await sclm.UpdateAsync<Profile>(tableId, Profile.UpdateProfile(profile));
-            List<Profile> updatedProfiles = new List<Profile>(await sclm.UpdateAsync<Profile>(tableId, Profile.UpdateProfiles(profiles)));
+            Profile updatedProfile = await storyTable.UpdateAsync(Profile.UpdateProfile(profile));
+            List<Profile> updatedProfiles = new List<Profile>(await storyTable.UpdateAsync(Profile.UpdateProfiles(profiles)));
 
             Assert.NotNull(updatedProfile);
             Assert.NotNull(updatedProfiles);
@@ -68,165 +102,164 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Count(int tableId)
+        [InlineData(18)]
+        public async void Count(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            long count = await sclm.CountAsync(tableId);
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            long count = await storyTable.CountAsync();
             Assert.True(count > 0);
-            count = await sclm.CountAsync(tableId, "[Gender][eq][false]");
+            count = await storyTable.CountAsync("[Gender][eq][false]");
             Assert.True(count > 0);
-            count = await sclm.LogCountAsync(tableId);
+            count = await storyTable.LogCountAsync();
             Assert.True(count > 0);
-            count = await sclm.LogCountAsync(tableId, DateTime.Now.AddDays(-5));
+            count = await storyTable.LogCountAsync(DateTime.Now.AddDays(-5));
             Assert.True(count > 0);
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Log(int tableId)
+        [InlineData(18)]
+        public async void Log(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-
-            IEnumerable<ApiLog> logs = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-5), 0, 900);
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            IEnumerable<ApiLog> logs = await storyTable.LogAsync(DateTime.Now.AddDays(-5), 0, 900);
             Assert.True(logs.Count() > 0);
 
-            logs = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-5));
+            logs = await storyTable.LogAsync(DateTime.Now.AddDays(-5));
             Assert.True(logs.Count() > 0);
 
-            logs = await sclm.LogAsync(tableId, skip: 0, take: 900);
+            logs = await storyTable.LogAsync(skip: 0, take: 900);
             Assert.True(logs.Count() > 0);
 
-            logs = await sclm.LogAsync(tableId);
+            logs = await storyTable.LogAsync();
             Assert.True(logs.Count() > 0);
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Aggregation(int tableId)
+        [InlineData(18)]
+        public async void Aggregation(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
 
-            var boolResult = await sclm.MaxAsync<bool>(tableId, "Gender");
-            var intResult = await sclm.MaxAsync<int>(tableId, "Age");
-            var stringResult = await sclm.MaxAsync<string>(tableId, "Name");
-            var datetimeResult = await sclm.MaxAsync<DateTime>(tableId, "Created");
-            var doubleResult = await sclm.MaxAsync<double>(tableId, "Rating");
+            var boolResult = await storyTable.MaxAsync<bool>("Gender");
+            var intResult = await storyTable.MaxAsync<int>("Age");
+            var stringResult = await storyTable.MaxAsync<string>("Name");
+            var datetimeResult = await storyTable.MaxAsync<DateTime>("Created");
+            var doubleResult = await storyTable.MaxAsync<double>("Rating");
 
-            var boolQueryResult = await sclm.MaxAsync<bool>(tableId, "Gender", "[Gender][eq][false]");
-            var intQueryResult = await sclm.MaxAsync<int>(tableId, "Age", "[Gender][eq][false]");
-            var stringQueryResult = await sclm.MaxAsync<string>(tableId, "Name", "[Gender][eq][false]");
-            var datetimeQueryResult = await sclm.MaxAsync<DateTime>(tableId, "Created", "[Gender][eq][false]");
-            var doubleQueryResult = await sclm.MaxAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+            var boolQueryResult = await storyTable.MaxAsync<bool>("Gender", "[Gender][eq][false]");
+            var intQueryResult = await storyTable.MaxAsync<int>("Age", "[Gender][eq][false]");
+            var stringQueryResult = await storyTable.MaxAsync<string>("Name", "[Gender][eq][false]");
+            var datetimeQueryResult = await storyTable.MaxAsync<DateTime>("Created", "[Gender][eq][false]");
+            var doubleQueryResult = await storyTable.MaxAsync<double>("Rating", "[Gender][eq][false]");
 
-            var boolMinResult = await sclm.MinAsync<bool>(tableId, "Gender");
-            var intMinResult = await sclm.MinAsync<int>(tableId, "Age");
-            var stringMinResult = await sclm.MinAsync<string>(tableId, "Name");
-            var datetimeMinResult = await sclm.MinAsync<DateTime>(tableId, "Created");
-            var doubleMinResult = await sclm.MinAsync<double>(tableId, "Rating");
+            var boolMinResult = await storyTable.MinAsync<bool>("Gender");
+            var intMinResult = await storyTable.MinAsync<int>("Age");
+            var stringMinResult = await storyTable.MinAsync<string>("Name");
+            var datetimeMinResult = await storyTable.MinAsync<DateTime>("Created");
+            var doubleMinResult = await storyTable.MinAsync<double>("Rating");
 
-            var boolQueryMinResult = await sclm.MinAsync<bool>(tableId, "Gender", "[Gender][eq][true]");
-            var intQueryMinResult = await sclm.MinAsync<int>(tableId, "Age", "[Gender][eq][true]");
-            var stringQueryMinResult = await sclm.MinAsync<string>(tableId, "Name", "[Gender][eq][true]");
-            var datetimeQueryMinResult = await sclm.MinAsync<DateTime>(tableId, "Created", "[Gender][eq][true]");
-            var doubleQueryMinResult = await sclm.MinAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+            var boolQueryMinResult = await storyTable.MinAsync<bool>("Gender", "[Gender][eq][true]");
+            var intQueryMinResult = await storyTable.MinAsync<int>("Age", "[Gender][eq][true]");
+            var stringQueryMinResult = await storyTable.MinAsync<string>("Name", "[Gender][eq][true]");
+            var datetimeQueryMinResult = await storyTable.MinAsync<DateTime>("Created", "[Gender][eq][true]");
+            var doubleQueryMinResult = await storyTable.MinAsync<double>("Rating", "[Gender][eq][false]");
 
-            var boolSumResult = await sclm.SumAsync<bool>(tableId, "Gender");
-            var intSumResult = await sclm.SumAsync<long>(tableId, "Age");
-            var doubleSumResult = await sclm.SumAsync<double>(tableId, "Rating");
+            var boolSumResult = await storyTable.SumAsync<bool>("Gender");
+            var intSumResult = await storyTable.SumAsync<long>("Age");
+            var doubleSumResult = await storyTable.SumAsync<double>("Rating");
 
-            var boolQuerySumResult = await sclm.SumAsync<bool>(tableId, "Gender", "[Gender][eq][true]");
-            var intQuerySumResult = await sclm.SumAsync<int>(tableId, "Age", "[Gender][eq][true]");
-            var doubleQuerySumResult = await sclm.SumAsync<double>(tableId, "Rating", "[Gender][eq][false]");
+            var boolQuerySumResult = await storyTable.SumAsync<bool>("Gender", "[Gender][eq][true]");
+            var intQuerySumResult = await storyTable.SumAsync<int>("Age", "[Gender][eq][true]");
+            var doubleQuerySumResult = await storyTable.SumAsync<double>("Rating", "[Gender][eq][false]");
 
-            var intAvgResult = await sclm.AvgAsync(tableId, "Age");
-            var doubleAvgResult = await sclm.AvgAsync(tableId, "Rating");
+            var intAvgResult = await storyTable.AvgAsync("Age");
+            var doubleAvgResult = await storyTable.AvgAsync("Rating");
 
-            var intQueryAvgResult = await sclm.AvgAsync(tableId, "Age", "[Gender][eq][true]");
-            var doubleQueryAvgResult = await sclm.AvgAsync(tableId, "Rating", "[Gender][eq][false]");
+            var intQueryAvgResult = await storyTable.AvgAsync("Age", "[Gender][eq][true]");
+            var doubleQueryAvgResult = await storyTable.AvgAsync("Rating", "[Gender][eq][false]");
 
-            Profile profile = await sclm.FirstAsync<Profile>(tableId, "[Age][eq][33]", "age", 1);
-            Profile profile1 = await sclm.FirstAsync<Profile>(tableId, sortfield: "age", sort: 1);
-            Profile profile2 = await sclm.FirstAsync<Profile>(tableId, sortfield: "age");
-            Profile profile3 = await sclm.FirstAsync<Profile>(tableId);
+            Profile profile = await storyTable.FirstAsync("[Age][eq][33]", "age", 1);
+            Profile profile1 = await storyTable.FirstAsync(sortfield: "age", sort: 1);
+            Profile profile2 = await storyTable.FirstAsync(sortfield: "age");
+            Profile profile3 = await storyTable.FirstAsync();
 
-            Profile profile4 = await sclm.LastAsync<Profile>(tableId, "[Age][eq][22]", "age", 1);
-            Profile profile5 = await sclm.LastAsync<Profile>(tableId, sortfield: "age", sort: 1);
-            Profile profile6 = await sclm.LastAsync<Profile>(tableId, sortfield: "age");
-            Profile profile7 = await sclm.LastAsync<Profile>(tableId);
+            Profile profile4 = await storyTable.LastAsync("[Age][eq][22]", "age", 1);
+            Profile profile5 = await storyTable.LastAsync(sortfield: "age", sort: 1);
+            Profile profile6 = await storyTable.LastAsync(sortfield: "age");
+            Profile profile7 = await storyTable.LastAsync();
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async void Find(int tableId)
+        [InlineData(18)]
+        public async void Find(int e)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            Profile profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile());
-            profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile1());
-            profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile2());
-            profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile3());
-            profile = await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfile4());
-            List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
+            profile = await storyTable.InsertAsync(Profile.CreateProfile1());
+            profile = await storyTable.InsertAsync(Profile.CreateProfile2());
+            profile = await storyTable.InsertAsync(Profile.CreateProfile3());
+            profile = await storyTable.InsertAsync(Profile.CreateProfile4());
+            List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
 
             //Получить объект по идентификатору
-            profile = await sclm.FindAsync<Profile>(tableId, profile._id);
+            profile = await storyTable.FindAsync(profile._id);
             Assert.NotNull(profile);
 
             //Получить коллекцию записей по списку идентификаторов
-            IEnumerable<Profile>  results = await sclm.FindAsync<Profile>(tableId, profiles.Select(t => t._id).ToArray());
+            IEnumerable<Profile>  results = await storyTable.FindAsync(profiles.Select(t => t._id).ToArray());
             Assert.True(results.Count() > 0);
 
-            results = await sclm.FindAsync<Profile>(tableId, "[Gender][eq][false]", "age", 1, 0, 100);
+            results = await storyTable.FindAsync("[age][lte][30]", "age", 1, 0, 100);
             Assert.True(results.Count() > 0);
 
-            results = await sclm.FindAsync<Profile>(tableId, sortfield: "age", sort: 1, skip: 0, take: 100);
+            results = await storyTable.FindAsync(sortfield: "age", sort: 1, skip: 0, take: 100);
             Assert.True(results.Count() > 0);
 
-            results = await sclm.FindAsync<Profile>(tableId, sortfield: "age", skip: 0, take: 100);
+            results = await storyTable.FindAsync(sortfield: "age", skip: 0, take: 100);
             Assert.True(results.Count() > 0);
 
-            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 100);
+            results = await storyTable.FindAsync(skip: 0, take: 100);
             Assert.True(results.Count() > 0);
 
-            results = await sclm.FindAsync<Profile>(tableId);
+            results = await storyTable.FindAsync();
             Assert.True(results.Count() > 0);
 
             //возраст меньше или равен 30
-            results = sclm.FindAsync<Profile>(tableId, "[age][lte][30]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[age][lte][30]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //поле "name" начинается с символа "T"
-            results = sclm.FindAsync<Profile>(tableId, "[name][sw][\"T\"]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[name][sw][\"T\"]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //поле "name" содержит строку "ad"
-            results = sclm.FindAsync<Profile>(tableId, "[Name][cn][\"ad\"]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[Name][cn][\"ad\"]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //поиск имен из списка
-            results = sclm.FindAsync<Profile>(tableId, "[Name][in][\"Stanislav\",\"Tamerlan\"]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[Name][in][\"Stanislav\",\"Tamerlan\"]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //Выбрать женщин, имя ("name") которых начинается со строки "V" 
-            results = sclm.FindAsync<Profile>(tableId, "[gender][eq][false][and][Name][sw][\"V\"]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[gender][eq][false][and][Name][sw][\"V\"]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //Выбрать мужчин младше 30 и женщин старше 30
-            results = sclm.FindAsync<Profile>(tableId, "[gender][eq][true][and][age][lt][30][or][gender][eq][false][and][age][gt][30]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("[gender][eq][true][and][age][lt][30][or][gender][eq][false][and][age][gt][30]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             #region сложные запросы со скобочками
 
             //поле "name" начинается с символов "T" или "S" при этом возраст должен быть равен 22
-            results = sclm.FindAsync<Profile>(tableId, "([name][sw][\"S\"][or][name][sw][\"T\"])[and][age][eq][22]", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("([name][sw][\"S\"][or][name][sw][\"T\"])[and][age][eq][22]", "age", 1, 0, 100).Result;
             Assert.True(results.Count() > 0);
 
             //Выбрать всех с возрастом НЕ в интервале [25,30] и с именами на "S" и "Т"
-            results = sclm.FindAsync<Profile>(tableId, "([age][lt][22][or][age][gt][30])[and]([name][sw][\"S\"][or][name][sw][\"T\"])", "age", 1, 0, 100).Result;
+            results = storyTable.FindAsync("([age][lt][22][or][age][gt][30])[and]([name][sw][\"S\"][or][name][sw][\"T\"])", "age", 1, 0, 100).Result;
            // Assert.True(results.Count() > 0);
 
             #endregion
@@ -234,21 +267,21 @@ namespace Tests
         }
 
         [Theory]
-        [InlineData(tableId)]
-        public async Task Delete(int tableId)
+        [InlineData(18)]
+        public async Task Delete(int id)
         {
-            SCLM sclm = SCLM.Instance;
-            await sclm.AuthAsync(clientId, secret);
-            IEnumerable<Profile> results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 1000);
+            SCLM sclm = await GetContextAsync();
+            var storyTable = await GetTableAsync(sclm);
+            IEnumerable<Profile> results = await storyTable.FindAsync(skip: 0, take: 1000);
             Assert.True(results.Count() > 0);
 
-            Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, results.First()._id);
+            Profile deleteResult = await storyTable.DeleteAsync(results.First()._id);
             Assert.NotNull(deleteResult);
 
-            results = await sclm.FindAsync<Profile>(tableId, skip: 0, take: 60);
+            results = await storyTable.FindAsync(skip: 0, take: 60);
             Assert.True(results.Count() > 0);
 
-            IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, results.Select(t=> t._id));
+            IEnumerable<Profile> deleteResults = await storyTable.DeleteAsync(results.Select(t=> t._id));
             Assert.True(deleteResults.Count() > 0);
         }
 

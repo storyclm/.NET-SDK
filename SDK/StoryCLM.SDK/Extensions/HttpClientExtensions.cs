@@ -10,7 +10,7 @@ namespace StoryCLM.SDK.Extensions
 {
    public static class HttpClientExtensions
     {
-        public static void SetToken(this HttpClient client, Token token)
+        public static void SetToken(this HttpClient client, StoryToken token)
         {
             if (token == null) return;
             client.DefaultRequestHeaders.Add("Authorization", "Bearer " + token?.AccessToken ?? string.Empty);

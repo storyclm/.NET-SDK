@@ -6,12 +6,8 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Models
 {
-   public class Token
+    public class StoryCount
     {
-        public string AccessToken { get; set; }
-
-        public string ExpiresIn { get; set; }
-
-        public string TokenType { get; set; }
+        public long Count { get; set; }
     }
 }
