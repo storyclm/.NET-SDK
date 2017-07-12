@@ -14,6 +14,7 @@
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <PackageProjectUrl>https://breffi.ru/en/storyclm</PackageProjectUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
+    <PackageId>StoryCLM</PackageId>
   </PropertyGroup>
 
   <ItemGroup>
