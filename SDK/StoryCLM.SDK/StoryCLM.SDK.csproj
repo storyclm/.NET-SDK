@@ -2,10 +2,10 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
-    <Version>1.3.5</Version>
+    <Version>1.3.6</Version>
     <Description>StoryCLM — a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
     <PackageIconUrl>https://storyclm.com/images/logo.png</PackageIconUrl>
-    <Authors>Vladimir Klyuev</Authors>
+    <Authors>Breffi LLC</Authors>
     <Copyright>© 2017. BREFFI</Copyright>
     <Company>Breffi LLC</Company>
     <Product>StoryCLM</Product>

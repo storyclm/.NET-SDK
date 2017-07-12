@@ -49,8 +49,7 @@ namespace Tests
 
         async Task<StoryTable<Profile>> GetTableAsync(SCLM sclm)
         {
-            IEnumerable<StoryTable<Profile>> tables = await sclm.GetTablesAsync<Profile>(clientId);
-            StoryTable<Profile> table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
+            StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
             return table;
         }
 

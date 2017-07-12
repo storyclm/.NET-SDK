@@ -229,8 +229,7 @@ namespace StoryCLM.SDK
         #region Tables
 
         /// <summary>
-        /// Таблицы.
-        /// Список таблиц для клиента.
+        /// Получает список таблиц
         /// </summary>
         /// <param name="clientId">Идентификатор клиента в базе данных</param>
         /// <returns></returns>
@@ -239,6 +238,18 @@ namespace StoryCLM.SDK
             IEnumerable<StoryTable<T>> result = await GETAsync<IEnumerable<StoryTable<T>>>(kTables + clientId + "/tables", string.Empty);
             foreach (var t in result) t._sclm = this;
             return result;
+        }
+
+        /// <summary>
+        /// Получает таблицу и идентификатору
+        /// </summary>
+        /// <param name="tableId">Идентификатор таблицы в базе данных</param>
+        /// <returns></returns>
+        public async Task<StoryTable<T>> GetTableAsync<T>(int tableId) where T : class, new()
+        {
+            StoryTable<T> table = await GETAsync<StoryTable<T>>(kTables + tableId, string.Empty);
+            table._sclm = this;
+            return table;
         }
 
         #endregion
