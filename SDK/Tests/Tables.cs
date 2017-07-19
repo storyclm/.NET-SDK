@@ -28,7 +28,7 @@ namespace Tests
                 case 0: // service
                     {
                         string clientId = "client_18_1";
-                        string secret = "";
+                        string secret = "d17ac10538ec402b9e2355dd3e2be0332b7f9dfa086645f3adcbff8c7208c94d";
                         SCLM sclm = new SCLM();
                         await sclm.AuthAsync(clientId, secret);
                         return sclm;
