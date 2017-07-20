@@ -123,28 +123,8 @@ await sclm.AuthAsync(clientId, secret, refreshToken);
 
 *Более подробная информация содержится в разделе ["Таблицы"](https://github.com/storyclm/documentation/blob/master/TABLES.md) документации.*
 
-#### Method: Task<IEnumerable\<ApiTable>> GetTablesAsync(int clientId)
-
-**Описание:**
-
-Получает cписок таблиц клиента.
-
-**Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* clientId - Идентификатор клиента в базе данных.
-
-**Возвращаемое значение:**
-
-Список таблиц
-
-**Пример:**
-```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<ApiTable> tables = await sclm.GetTablesAsync(228);
-```
-
 SDK при работе с таблицами оперирует объектами. Объект должен соответсвовать схеме таблицы. Один объект - одна запись.
-Создадим таблицу Profiles на панели администрирования и кдасс Profile в проекте, поля которого будут соответсвовать схеме таблицы Profiles:
+Создадим таблицу Profiles на панели администрирования и класс Profile в проекте с полями которые будут соответсвовать схеме таблицы Profiles:
 ```cs
     /// <summary>
     /// Профиль пользователя
@@ -184,7 +164,52 @@ SDK при работе с таблицами оперирует объектами. Объект должен соответсвовать схе
 
     }
 ```
-#### Method: Task\<T> InsertAsync\<T>(int tableId, T o)
+
+#### Method: Task<IEnumerable\<StoryTable\<T>>> GetTablesAsync\<T>(int clientId)
+
+**Описание:**
+
+Получает cписок таблиц клиента.
+
+**Параметры:**
+* T - параметризованный тип (generic), описывающий сущность в таблице.
+* clientId - Идентификатор клиента в базе данных.
+
+**Возвращаемое значение:**
+
+Список таблиц
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+IEnumerable<StoryTable<Profile>> tables = await sclm.GetTablesAsync<Profile>(clientId);
+```
+#### Method: Task<StoryTable\<T>> GetTableAsync\<T>(int tableId)
+
+**Описание:**
+
+Получает таблицу по идентификатору.
+
+**Параметры:**
+* T - параметризованный тип (generic), описывающий сущность в таблице.
+* tableId - Идентификатор таблицы.
+
+**Возвращаемое значение:**
+
+Объект "Таблица"
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+```
+
+Методы GetTablesAsync и GetTablesAsync возвращают типизированные объекты StoryTable\<Profile>, в данном случае с типом Profile. Это означает что все операции над данными в этой таблице будут производится с участием этого типа. Для того что бы производить операции с данными таблицы у класса StoryTable есть определенный набор методов. 
+
+
+#### Method: Task\<T> InsertAsync(T o)
 
 **Описание:**
 
@@ -192,8 +217,6 @@ SDK при работе с таблицами оперирует объектами. Объект должен соответсвовать схе
 Объект должен соответствовать схеме таблицы.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * o - Новый объект.
 
 **Возвращаемое значение:**
@@ -202,11 +225,13 @@ SDK при работе с таблицами оперирует объектами. Объект должен соответсвовать схе
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-Profile profile = await sclm.InsertAsync<Profile>(tableId, new Profile());
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+Profile profile = await table.InsertAsync(new Profile());
 ```
 
-#### Method: Task<IEnumerable\<T>> InsertAsync\<T>(int tableId, IEnumerable<T> o)
+#### Method: Task<IEnumerable\<T>> InsertAsync(IEnumerable<T> o)
 
 **Описание:**
 
@@ -214,8 +239,6 @@ Profile profile = await sclm.InsertAsync<Profile>(tableId, new Profile());
 Каждая объект должен соответствовать схеме таблицы.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * o - коллекция новых объектов
 
 **Возвращаемое значение:**
@@ -224,11 +247,13 @@ Profile profile = await sclm.InsertAsync<Profile>(tableId, new Profile());
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(tableId, Profile.CreateProfiles()));
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+List<Profile> profiles = new List<Profile>(await table.InsertAsync(Profile.CreateProfiles()));
 ```
 
-#### Method: Task\<T> UpdateAsync\<T>(int tableId, T o)
+#### Method: Task\<T> UpdateAsync(T o)
 
 **Описание:**
 
@@ -236,8 +261,6 @@ List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(table
 Идентификатор записи остается неизменным.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * o - обновляемый объект.
 
 **Возвращаемое значение:**
@@ -246,11 +269,13 @@ List<Profile> profiles = new List<Profile>(await sclm.InsertAsync<Profile>(table
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-Profile updatedProfile = await sclm.UpdateAsync<Profile>(tableId, Profile.UpdateProfile(profile));
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+Profile updatedProfile = await table.UpdateAsync(Profile.UpdateProfile(profile));
 ```
 
-#### Method: Task<IEnumerable\<T>> UpdateAsync\<T>(int tableId, IEnumerable\<T> o)
+#### Method: Task<IEnumerable\<T>> UpdateAsync(IEnumerable\<T> o)
 
 **Описание:**
 
@@ -258,8 +283,6 @@ Profile updatedProfile = await sclm.UpdateAsync<Profile>(tableId, Profile.Update
 Идентификатор записи остается неизменным.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * o - коллекция обновляемых объектов.
 
 **Возвращаемое значение:**
@@ -268,19 +291,19 @@ Profile updatedProfile = await sclm.UpdateAsync<Profile>(tableId, Profile.Update
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-List<Profile> updatedProfiles = new List<Profile>(await sclm.UpdateAsync<Profile>(tableId, Profile.UpdateProfiles(profiles)));
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+List<Profile> updatedProfiles = new List<Profile>(await table.UpdateAsync(Profile.UpdateProfiles(profiles)));
 ```
 
-#### Method: Task\<T> DeleteAsync\<T>(int tableId, string id)
+#### Method: Task\<T> DeleteAsync(string id)
 
 **Описание:**
 
 Удаляет объект таблицы по идентификатору.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * id - Идентификатор записи.
 
 **Возвращаемое значение:**
@@ -289,19 +312,19 @@ List<Profile> updatedProfiles = new List<Profile>(await sclm.UpdateAsync<Profile
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, profile._id);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+Profile deleteResult = await table.DeleteAsync(profile._id);
 ```
 
-#### Method: Task<IEnumerable\<T>> DeleteAsync\<T>(int tableId, IEnumerable\<string> ids)
+#### Method: Task<IEnumerable\<T>> DeleteAsync(IEnumerable\<string> ids)
 
 **Описание:**
 
 Удаляет коллекцию объектов таблицы по поллекции идентификаторов.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * ids - коллекция идентификаторов.
 
 **Возвращаемое значение:**
@@ -310,18 +333,17 @@ Profile deleteResult = await sclm.DeleteAsync<Profile>(tableId, profile._id);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, profiles.Select(t=> t._id));
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+IEnumerable<Profile> deleteResults = await table.DeleteAsync(profiles.Select(t=> t._id));
 ```
 
-#### Method: Task\<long> CountAsync(int tableId)
+#### Method: Task\<long> CountAsync()
 
 **Описание:**
 
 Получает колличество записей в таблице.
-
-**Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 
 **Возвращаемое значение:**
 
@@ -329,11 +351,13 @@ IEnumerable<Profile> deleteResults = await sclm.DeleteAsync<Profile>(tableId, pr
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-long count = await sclm.CountAsync(tableId);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+long count = await table.CountAsync(tableId);
 ```
 
-#### Method: Task\<long> CountAsync(int tableId, string query)
+#### Method: Task\<long> CountAsync(string query)
 
 **Описание:**
 
@@ -341,7 +365,6 @@ long count = await sclm.CountAsync(tableId);
 Запрос должен быть в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
 
 **Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 * query - запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md)
 
 **Возвращаемое значение:**
@@ -350,18 +373,17 @@ long count = await sclm.CountAsync(tableId);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-long count = await sclm.CountAsync(tableId, "[age][gt][30]");
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+long count = await table.CountAsync("[age][gt][30]");
 ```
 
-#### Method: Task\<long> LogCountAsync(int tableId)
+#### Method: Task\<long> LogCountAsync()
 
 **Описание:**
 
 Получает колличество записей лога таблицы.
-
-**Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 
 **Возвращаемое значение:**
 
@@ -369,18 +391,19 @@ long count = await sclm.CountAsync(tableId, "[age][gt][30]");
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-long count = await sclm.LogCountAsync(tableId);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+long count = await table.LogCountAsync();
 ```
 
-#### Method: Task\<long> LogCountAsync(int tableId, DateTime date)
+#### Method: Task\<long> LogCountAsync(DateTime date)
 
 **Описание:**
 
 Получает колличество записей лога после указанной даты.
 
 **Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 * date - Дата, после которой будет произведена выборка.
 
 **Возвращаемое значение:**
@@ -389,18 +412,19 @@ long count = await sclm.LogCountAsync(tableId);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-long count = await sclm.LogCountAsync(tableId, (DateTime.Now.AddDays(-25)));
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+long count = await table.LogCountAsync((DateTime.Now.AddDays(-25)));
 ```
 
-#### Method: Task<IEnumerable\<ApiLog>> LogAsync(int tableId, int skip, int take)
+#### Method: Task<IEnumerable\<ApiLog>> LogAsync(int skip, int take)
 
 **Описание:**
 
 Получает записи лога.
 
 **Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 * skip - Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.
 * take - Максимальное количество записей, которые будут получены. По умолчанию - 100, максимально 1000.
 
@@ -410,18 +434,19 @@ long count = await sclm.LogCountAsync(tableId, (DateTime.Now.AddDays(-25)));
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<ApiLog> = await sclm.LogAsync(tableId, 0, 1000);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+IEnumerable<ApiLog> = await table.LogAsync(0, 1000);
 ```
 
-#### Method: Task<IEnumerable\<ApiLog>> LogAsync(int tableId, DateTime date, int skip, int take)
+#### Method: Task<IEnumerable\<ApiLog>> LogAsync(DateTime date, int skip, int take)
 
 **Описание:**
 
 Получает записи лога, после указаной даты.
 
 **Параметры:**
-* tableId - Идентификатор таблицы в базе данных.
 * date - Дата, после которой будет произведена выборка.
 * skip - Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.
 * take - Максимальное количество записей, которые будут получены. По умолчанию - 100, максимально 1000.
@@ -432,19 +457,20 @@ IEnumerable<ApiLog> = await sclm.LogAsync(tableId, 0, 1000);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<ApiLog> = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-25), 0, 1000);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+IEnumerable<ApiLog> = await table.LogAsync(DateTime.Now.AddDays(-25), 0, 1000);
 ```
 
-#### Method: Task\<T> FindAsync\<T>(int tableId, string id)
+#### Method: Task\<T> FindAsync(string id)
 
 **Описание:**
 
 Получает запись таблицы по идентификатору.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
+* id - Идентификатор записи.
 
 **Возвращаемое значение:**
 
@@ -452,19 +478,19 @@ IEnumerable<ApiLog> = await sclm.LogAsync(tableId, DateTime.Now.AddDays(-25), 0,
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-Profile profile = await sclm.FindAsync<Profile>(tableId, id);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+Profile profile = await table.FindAsync(id);
 ```
 
-#### Method: Task<IEnumerable\<T>> FindAsync\<T>(int tableId, IEnumerable\<string> ids)
+#### Method: Task<IEnumerable\<T>> FindAsync(IEnumerable\<string> ids)
 
 **Описание:**
 
 Получает коллекцию записей по списку идентификаторов.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * ids - коллекция идентификаторов.
 
 **Возвращаемое значение:**
@@ -473,19 +499,19 @@ Profile profile = await sclm.FindAsync<Profile>(tableId, id);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<Profile> profiles = await sclm.FindAsync<Profile>(tableId, ids);
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+IEnumerable<Profile> profiles = await table.FindAsync(ids);
 ```
 
-#### Method: Task<IEnumerable\<T>> FindAsync\<T>(int tableId, int skip, int take)
+#### Method: Task<IEnumerable\<T>> FindAsync(int skip, int take)
 
 **Описание:**
 
 Получает постранично все данные таблицы.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
-* tableId - Идентификатор таблицы в базе данных.
 * skip - Отступ в запросе. Сколько первых элементов нужно пропустить. По умолчанию - 0.
 * take - Максимальное количество записей, которые будут получены. По умолчанию - 100, максимально 1000.
 
@@ -495,11 +521,13 @@ IEnumerable<Profile> profiles = await sclm.FindAsync<Profile>(tableId, ids);
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
-IEnumerable<Profile> profiles = sclm.FindAsync<Profile>(tableId, 0, 1000).Result;
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+IEnumerable<Profile> profiles = await table.FindAsync(0, 1000);
 ```
 
-#### Method: Task<IEnumerable\<T>> FindAsync\<T>(int tableId, string query, string sortfield, int sort, int skip, int take)
+#### Method: Task<IEnumerable\<T>> FindAsync(string query, string sortfield, int sort, int skip, int take)
 
 **Описание:**
 
@@ -512,7 +540,6 @@ IEnumerable<Profile> profiles = sclm.FindAsync<Profile>(tableId, 0, 1000).Result
 Параметры из которых создается запрос могут быть двух типов: Comparison и Logical.
 
 **Параметры:**
-* T - параметризованный тип (generic), описывающий сущность в таблице.
 * query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
 * sortfield - Поле, по которому нужно произвести сортировку.
 * sort - Тип сортировки.
@@ -526,31 +553,33 @@ IEnumerable<Profile> profiles = sclm.FindAsync<Profile>(tableId, 0, 1000).Result
 
 **Пример:**
 ```cs
-SCLM sclm = SCLM.Instance;
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync();
 
 //возраст меньше или равен 30
-IEnumerable<Profile> profiles  = sclm.FindAsync<Profile>(tableId, "[age][lte][30]", "age", 1, 0, 100).Result;
+IEnumerable<Profile> profiles  = await table.FindAsync("[age][lte][30]", "age", 1, 0, 100);
 
 //поле "name" начинается с символа "T"
-profiles = sclm.FindAsync<Profile>(tableId, "[name][sw][\"T\"]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("[name][sw][\"T\"]", "age", 1, 0, 100);
 
 //поле "name" содержит строку "ad"
-profiles = sclm.FindAsync<Profile>(tableId, "[Name][cn][\"ad\"]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("[Name][cn][\"ad\"]", "age", 1, 0, 100);
 
 //поиск имен из списка
-profiles = sclm.FindAsync<Profile>(tableId, "[Name][in][\"Stanislav\",\"Tamerlan\"]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("[Name][in][\"Stanislav\",\"Tamerlan\"]", "age", 1, 0, 100);
 
 //Выбрать женщин, имя ("name") которых начинается со строки "V" 
-profiles = sclm.FindAsync<Profile>(tableId, "[gender][eq][false][and][Name][sw][\"V\"]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("[gender][eq][false][and][Name][sw][\"V\"]", "age", 1, 0, 100);
 
 //Выбрать мужчин младше 30 и женщин старше 30
-profiles = sclm.FindAsync<Profile>(tableId, "[gender][eq][true][and][age][lt][30][or][gender][eq][false][and][age][gt][30]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("[gender][eq][true][and][age][lt][30][or][gender][eq][false][and][age][gt][30]", "age", 1, 0, 100);
 
 //поле "name" начинается с символов "T" или "S" при этом возраст должен быть равен 22
-profiles = sclm.FindAsync<Profile>(tableId, "([name][sw][\"S\"][or][name][sw][\"T\"])[and][age][eq][22]", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("([name][sw][\"S\"][or][name][sw][\"T\"])[and][age][eq][22]", "age", 1, 0, 100);
 
 //Выбрать всех с возрастом НЕ в интервале [25,30] и с именами на "S" и "Т"
-profiles = sclm.FindAsync<Profile>(tableId, "([age][lt][22][or][age][gt][30])[and]([name][sw][\"S\"][or][name][sw][\"T\"])", "age", 1, 0, 100).Result;
+profiles = await table.FindAsync("([age][lt][22][or][age][gt][30])[and]([name][sw][\"S\"][or][name][sw][\"T\"])", "age", 1, 0, 100);
 ```
 
 
