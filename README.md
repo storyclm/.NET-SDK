@@ -582,8 +582,183 @@ profiles = await table.FindAsync("([name][sw][\"S\"][or][name][sw][\"T\"])[and][
 profiles = await table.FindAsync("([age][lt][22][or][age][gt][30])[and]([name][sw][\"S\"][or][name][sw][\"T\"])", "age", 1, 0, 100);
 ```
 
+#### Method: Task\<T> MaxAsync\<T>(string field, string query = null)
 
+**Описание:**
 
+Возвращается максимальное значение.
 
+**Параметры:**
+* T - тип поля.
+* field - Название поля.
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
 
+**Возвращаемое значение:**
+
+Максимальное значение.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+bool boolResult = await storyTable.MaxAsync<bool>("Gender");
+int intResult = await storyTable.MaxAsync<int>("Age");
+string stringResult = await storyTable.MaxAsync<string>("Name");
+DateTime datetimeResult = await storyTable.MaxAsync<DateTime>("Created");
+double doubleResult = await storyTable.MaxAsync<double>("Rating");
+
+bool boolQueryResult = await storyTable.MaxAsync<bool>("Gender", "[Gender][eq][false]");
+int intQueryResult = await storyTable.MaxAsync<int>("Age", "[Gender][eq][false]");
+string stringQueryResult = await storyTable.MaxAsync<string>("Name", "[Gender][eq][false]");
+DateTime datetimeQueryResult = await storyTable.MaxAsync<DateTime>("Created", "[Gender][eq][false]");
+double doubleQueryResult = await storyTable.MaxAsync<double>("Rating", "[Gender][eq][false]");
+```
+
+#### Method: Task\<T> MinAsync\<T>(string field, string query = null)
+
+**Описание:**
+
+Возвращается минимальное значение.
+
+**Параметры:**
+* T - тип поля.
+* field - Название поля.
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
+
+**Возвращаемое значение:**
+
+Максимальное значение.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+bool boolResult = await storyTable.MinAsync<bool>("Gender");
+int intResult = await storyTable.MinAsync<int>("Age");
+string stringResult = await storyTable.MinAsync<string>("Name");
+DateTime datetimeResult = await storyTable.MinAsync<DateTime>("Created");
+double doubleResult = await storyTable.MinAsync<double>("Rating");
+
+bool boolQueryResult = await storyTable.MinAsync<bool>("Gender", "[Gender][eq][false]");
+int intQueryResult = await storyTable.MinAsync<int>("Age", "[Gender][eq][false]");
+string stringQueryResult = await storyTable.MinAsync<string>("Name", "[Gender][eq][false]");
+DateTime datetimeQueryResult = await storyTable.MinAsync<DateTime>("Created", "[Gender][eq][false]");
+double doubleQueryResult = await storyTable.MinAsync<double>("Rating", "[Gender][eq][false]");
+```
+
+#### Method: Task\<T> SumAsync\<T>(string field, string query = null)
+
+**Описание:**
+
+Возвращает сумму.
+
+**Параметры:**
+* T - тип поля.
+* field - Название поля.
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
+
+**Возвращаемое значение:**
+
+Сумма.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+bool boolSumResult = await storyTable.SumAsync<bool>("Gender");
+long intSumResult = await storyTable.SumAsync<long>("Age");
+double doubleSumResult = await storyTable.SumAsync<double>("Rating");
+
+bool boolQuerySumResult = await storyTable.SumAsync<bool>("Gender", "[Gender][eq][true]");
+int intQuerySumResult = await storyTable.SumAsync<int>("Age", "[Gender][eq][true]");
+double doubleQuerySumResult = await storyTable.SumAsync<double>("Rating", "[Gender][eq][false]");
+```
+
+#### Method: Task\<T> AvgAsync\<T>(string field, string query = null)
+
+**Описание:**
+
+Возвращает среднее занчение.
+
+**Параметры:**
+* T - тип поля.
+* field - Название поля.
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
+
+**Возвращаемое значение:**
+
+Среднее значение.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+double intAvgResult = await storyTable.AvgAsync("Age");
+double doubleAvgResult = await storyTable.AvgAsync("Rating");
+
+double intQueryAvgResult = await storyTable.AvgAsync("Age", "[Gender][eq][true]");
+double doubleQueryAvgResult = await storyTable.AvgAsync("Rating", "[Gender][eq][false]");
+```
+
+#### Method: Task\<T> FirstAsync(string query = null, string sortfield = null, int? sort = null)
+
+**Описание:**
+
+Возвращает первый элемент или null.
+
+**Параметры:**
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
+* sortfield - Поле, по которому нужно произвести сортировку.
+* sort - Тип сортировки.
+
+**Возвращаемое значение:**
+
+Объект.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+Profile profile = await storyTable.FirstAsync("[Age][eq][33]", "age", 1);
+Profile profile1 = await storyTable.FirstAsync(sortfield: "age", sort: 1);
+Profile profile2 = await storyTable.FirstAsync(sortfield: "age");
+Profile profile3 = await storyTable.FirstAsync();
+```
+
+#### Method: Task\<T> LastAsync(string query = null, string sortfield = null, int? sort = null)
+
+**Описание:**
+
+Возвращает последний объект или null.
+
+**Параметры:**
+* query - Запрос в формате [TablesQuery](https://github.com/storyclm/documentation/blob/master/TABLES_QUERY.md).
+* sortfield - Поле, по которому нужно произвести сортировку.
+* sort - Тип сортировки.
+
+**Возвращаемое значение:**
+
+Объект.
+
+**Пример:**
+```cs
+SCLM sclm = new SCLM();
+await sclm.AuthAsync(clientId, secret);
+StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+
+Profile profile4 = await storyTable.LastAsync("[Age][eq][22]", "age", 1);
+Profile profile5 = await storyTable.LastAsync(sortfield: "age", sort: 1);
+Profile profile6 = await storyTable.LastAsync(sortfield: "age");
+Profile profile7 = await storyTable.LastAsync();
+```
 
