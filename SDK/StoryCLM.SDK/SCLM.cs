@@ -1,5 +1,5 @@
 ﻿/*!
-* StoryCLM.SDK Library v1.0.0
+* StoryCLM.SDK Library v1.5.0
 * Copyright(c) 2016, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
@@ -22,6 +22,11 @@ namespace StoryCLM.SDK
     {
         const string kMediaTypeHeader = "application/json";
         internal string kTables = @"/v1/tables/";
+        internal string kClients = @"/v1/clients/";
+        internal string kPresentations = @"/v1/presentations/";
+        internal string kMediafiles = @"/v1/mediafiles/";
+        internal string kSlides = @"/v1/slides/";
+        internal string kContentpackages = @"/v1/contentpackages/";
         const string kWebHooks = @"/v1/webhooks/";
 
         private string _clientId;
@@ -228,11 +233,6 @@ namespace StoryCLM.SDK
 
         #region Tables
 
-        /// <summary>
-        /// Получает список таблиц
-        /// </summary>
-        /// <param name="clientId">Идентификатор клиента в базе данных</param>
-        /// <returns></returns>
         public async Task<IEnumerable<StoryTable<T>>> GetTablesAsync<T>(int clientId) where T : class, new()
         {
             IEnumerable<StoryTable<T>> result = await GETAsync<IEnumerable<StoryTable<T>>>(kTables + clientId + "/tables", string.Empty);
@@ -240,17 +240,44 @@ namespace StoryCLM.SDK
             return result;
         }
 
-        /// <summary>
-        /// Получает таблицу и идентификатору
-        /// </summary>
-        /// <param name="tableId">Идентификатор таблицы в базе данных</param>
-        /// <returns></returns>
         public async Task<StoryTable<T>> GetTableAsync<T>(int tableId) where T : class, new()
         {
             StoryTable<T> table = await GETAsync<StoryTable<T>>(kTables + tableId, string.Empty);
             table._sclm = this;
             return table;
         }
+
+
+        public async Task<IEnumerable<StoryClient>> GetClientsAsync()
+        {
+            IEnumerable<StoryClient> result = await GETAsync<IEnumerable<StoryClient>>(kClients, string.Empty);
+            foreach (var t in result) t._sclm = this;
+            return result;
+        }
+
+
+        public async Task<StoryClient> GetClientAsync(int clientId)
+        {
+            StoryClient client = await GETAsync<StoryClient>(kClients + clientId, string.Empty);
+            client._sclm = this;
+            return client;
+        }
+
+        public async Task<StoryPresentation> GetPresentationAsync(int presentationId)
+        {
+            StoryPresentation presentation = await GETAsync<StoryPresentation>(kPresentations + presentationId, string.Empty);
+            presentation._sclm = this;
+            return presentation;
+        }
+
+        public async Task<StoryMediafile> GetMediafileAsync(int mediafileId) => 
+            await GETAsync<StoryMediafile>(kMediafiles + mediafileId, string.Empty);
+
+        public async Task<StorySlide> GetSlideAsync(int slideId) =>
+            await GETAsync<StorySlide>(kSlides + slideId, string.Empty);
+
+        public async Task<StoryPackageSas> GetContentPackageAsync(int presentationId) =>
+            await GETAsync<StoryPackageSas>(kContentpackages + presentationId, string.Empty);
 
         #endregion
 

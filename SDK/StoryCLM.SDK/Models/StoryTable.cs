@@ -10,9 +10,7 @@ namespace StoryCLM.SDK.Models
     {
         internal SCLM _sclm;
 
-        internal StoryTable()
-        {
-        }
+        internal StoryTable() { }
 
         private string ToParamString(string[] param)
         {

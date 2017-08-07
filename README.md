@@ -118,7 +118,6 @@ await sclm.AuthAsync(clientId, secret, refreshToken);
 
 ## Таблицы
 
-
 [Таблицы](https://github.com/storyclm/documentation/blob/master/TABLES.md) - это реляционное хранилище данных.
 
 *Более подробная информация содержится в разделе ["Таблицы"](https://github.com/storyclm/documentation/blob/master/TABLES.md) документации.*

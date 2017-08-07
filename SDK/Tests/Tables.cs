@@ -1,5 +1,5 @@
 ﻿/*!
-* StoryCLM.SDK Library v1.3.0
+* StoryCLM.SDK Library v1.5.0
 * Copyright(c) 2017, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
@@ -16,40 +16,9 @@ namespace Tests
 {
    public class Tables
     {
-        const int uc = 0;
-        const int clientId = 18;
-        const int tableId = 23;
-
-
-        async Task<SCLM> GetContextAsync()
-        {
-            switch (uc)
-            {
-                case 0: // service
-                    {
-                        string clientId = "client_18_1";
-                        string secret = "d17ac10538ec402b9e2355dd3e2be0332b7f9dfa086645f3adcbff8c7208c94d";
-                        SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(clientId, secret);
-                        return sclm;
-                    }
-                case 1: // application (user)
-                    {
-                        string username = "rsk-k161@ya.ru";
-                        string password = "";
-                        string clientId = "client_18_4";
-                        string secret = "";
-                        SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(clientId, secret, username, password);
-                        return sclm;
-                    }
-            }
-            return null;
-        }
-
         async Task<StoryTable<Profile>> GetTableAsync(SCLM sclm)
         {
-            StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(tableId);
+            StoryTable<Profile> table = await sclm.GetTableAsync<Profile>(Utilities.tableId);
             return table;
         }
 
@@ -57,7 +26,7 @@ namespace Tests
         [InlineData(18)]
         public async void GetTables(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             IEnumerable<StoryTable<Profile>> tables = await sclm.GetTablesAsync<Profile>(id);
             StoryTable<Profile> table = tables.FirstOrDefault(t => t.Name.Contains("Profile"));
             Assert.True(tables.Count() > 0);
@@ -68,7 +37,7 @@ namespace Tests
         [InlineData(18)]
         public async void Insert(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             await storyTable.InsertAsync(new Profile());
             Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
@@ -82,7 +51,7 @@ namespace Tests
         [InlineData(18)]
         public async void Update(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
             List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
@@ -104,7 +73,7 @@ namespace Tests
         [InlineData(18)]
         public async void Count(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             long count = await storyTable.CountAsync();
             Assert.True(count > 0);
@@ -120,7 +89,7 @@ namespace Tests
         [InlineData(18)]
         public async void Log(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             IEnumerable<ApiLog> logs = await storyTable.LogAsync(DateTime.Now.AddDays(-5), 0, 900);
             Assert.True(logs.Count() > 0);
@@ -139,7 +108,7 @@ namespace Tests
         [InlineData(18)]
         public async void Aggregation(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
 
             var boolResult = await storyTable.MaxAsync<bool>("Gender");
@@ -195,7 +164,7 @@ namespace Tests
         [InlineData(18)]
         public async void Find(int e)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             Profile profile = await storyTable.InsertAsync(Profile.CreateProfile());
             profile = await storyTable.InsertAsync(Profile.CreateProfile1());
@@ -269,7 +238,7 @@ namespace Tests
         [InlineData(18)]
         public async Task Delete(int id)
         {
-            SCLM sclm = await GetContextAsync();
+            SCLM sclm = await Utilities.GetContextAsync();
             var storyTable = await GetTableAsync(sclm);
             IEnumerable<Profile> results = await storyTable.FindAsync(skip: 0, take: 1000);
             Assert.True(results.Count() > 0);
