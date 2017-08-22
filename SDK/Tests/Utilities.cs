@@ -9,7 +9,7 @@ namespace Tests
 {
    public static class Utilities
     {
-        public static int uc = 0;
+        public static int uc = 1;
         public static int clientId = 18;
         public static int tableId = 23;
 

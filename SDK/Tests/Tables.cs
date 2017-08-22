@@ -1,5 +1,5 @@
 ﻿/*!
-* StoryCLM.SDK Library v1.5.0
+* StoryCLM.SDK Library v1.6.0
 * Copyright(c) 2017, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */

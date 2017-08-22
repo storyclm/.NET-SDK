@@ -21,6 +21,7 @@ namespace StoryCLM.SDK
     public class SCLM
     {
         const string kMediaTypeHeader = "application/json";
+        internal string kUsers = @"/v1/users/";
         internal string kTables = @"/v1/tables/";
         internal string kClients = @"/v1/clients/";
         internal string kPresentations = @"/v1/presentations/";
@@ -59,9 +60,9 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
                 HttpResponseMessage response = await client.PostAsync(resource, new StringContent(content, Encoding.UTF8, contentType));
                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return null;
+                result = await response.Content.ReadAsStringAsync();
                 if (!(response.StatusCode != System.Net.HttpStatusCode.Created ||
                     response.StatusCode != System.Net.HttpStatusCode.OK)) ThrowResponseException(response, result);
-                result = await response.Content.ReadAsStringAsync();
             }
             return result;
         }
@@ -80,11 +81,12 @@ namespace StoryCLM.SDK
                 client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
                 await RefreshAsync();
                 client.SetToken(Token);
+                string c = await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o));
                 HttpResponseMessage response = await client.PostAsync(resource,
-                    new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
+                    new StringContent(c, Encoding.UTF8, kMediaTypeHeader));
                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
-                if (response.StatusCode != System.Net.HttpStatusCode.Created) ThrowResponseException(response, result);
                 result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode != System.Net.HttpStatusCode.Created) ThrowResponseException(response, result);
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -106,10 +108,31 @@ namespace StoryCLM.SDK
                 HttpResponseMessage response = await client.PutAsync(resource,
                     new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
                 result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
+        }
+
+        internal async Task PUTAsync(string resource, object o)
+        {
+            if (string.IsNullOrEmpty(resource)) throw new Exception("");
+            string result = null;
+            using (var handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            })
+            using (var client = new HttpClient(handler) { BaseAddress = new Uri(endpoint) })
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                await RefreshAsync();
+                client.SetToken(Token);
+                HttpResponseMessage response = await client.PutAsync(resource,
+                    new StringContent(o == null ? string.Empty : await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)), Encoding.UTF8, kMediaTypeHeader));
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return;
+                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
+            }
         }
 
         internal async Task<T> GETAsync<T>(string resource, string query)
@@ -128,8 +151,8 @@ namespace StoryCLM.SDK
                 client.SetToken(Token);
                 HttpResponseMessage response = await client.GetAsync(resource + query);
                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
                 result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
         }
@@ -150,10 +173,30 @@ namespace StoryCLM.SDK
                 client.SetToken(Token);
                 HttpResponseMessage response = await client.DeleteAsync(resource + query);
                 if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return default(T);
-                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
                 result = await response.Content.ReadAsStringAsync();
+                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
             }
             return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(result));
+        }
+
+        internal async Task DELETEAsync(string resource, string query)
+        {
+            if (string.IsNullOrEmpty(resource)) throw new Exception("");
+            string result = null;
+            using (var handler = new HttpClientHandler()
+            {
+                AllowAutoRedirect = false
+            })
+            using (var client = new HttpClient(handler) { BaseAddress = new Uri(endpoint) })
+            {
+                client.DefaultRequestHeaders.Accept.Clear();
+                client.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue(kMediaTypeHeader));
+                await RefreshAsync();
+                client.SetToken(Token);
+                HttpResponseMessage response = await client.DeleteAsync(resource + query);
+                if (response.StatusCode == System.Net.HttpStatusCode.NoContent) return;
+                if (response.StatusCode != System.Net.HttpStatusCode.OK) ThrowResponseException(response, result);
+            }
         }
 
         #endregion
@@ -247,6 +290,9 @@ namespace StoryCLM.SDK
             return table;
         }
 
+        #endregion
+
+        #region Content
 
         public async Task<IEnumerable<StoryClient>> GetClientsAsync()
         {
@@ -254,7 +300,6 @@ namespace StoryCLM.SDK
             foreach (var t in result) t._sclm = this;
             return result;
         }
-
 
         public async Task<StoryClient> GetClientAsync(int clientId)
         {
@@ -270,7 +315,7 @@ namespace StoryCLM.SDK
             return presentation;
         }
 
-        public async Task<StoryMediafile> GetMediafileAsync(int mediafileId) => 
+        public async Task<StoryMediafile> GetMediafileAsync(int mediafileId) =>
             await GETAsync<StoryMediafile>(kMediafiles + mediafileId, string.Empty);
 
         public async Task<StorySlide> GetSlideAsync(int slideId) =>
@@ -281,6 +326,36 @@ namespace StoryCLM.SDK
 
         #endregion
 
+        #region Users
 
+        public async Task<StoryUser> UserExistsAsync(string username)
+        {
+            StoryUser user = await GETAsync<StoryUser>(kUsers + "/exists?username=" + username, string.Empty);
+            user._sclm = this;
+            return user;
+        }
+
+        public async Task<StoryUser> CreateUserAsync(StoryCreateUserModel user)
+        {
+            StoryUser u = await POSTAsync<StoryUser>(kUsers, user);
+            u._sclm = this;
+            return u;
+        }
+
+        public async Task<StoryUser> GetUserAsync(string userId)
+        {
+            StoryUser user = await GETAsync<StoryUser>(kUsers + userId, string.Empty);
+            user._sclm = this;
+            return user;
+        }
+
+        public async Task<IEnumerable<StoryUserItem>> GetUsersAsync()
+        {
+            var users = await GETAsync<IEnumerable<StoryUserItem>>(kUsers, string.Empty);
+            foreach (var t in users) t._sclm = this;
+            return users;
+        }
+
+        #endregion
     }
 }

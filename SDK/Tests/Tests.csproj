@@ -86,6 +86,7 @@
       <DependentUpon>Resources.resx</DependentUpon>
     </Compile>
     <Compile Include="Tables.cs" />
+    <Compile Include="Users.cs" />
     <Compile Include="Utilities.cs" />
   </ItemGroup>
   <ItemGroup>
