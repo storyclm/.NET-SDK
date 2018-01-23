@@ -11,13 +11,11 @@ namespace Tests
 {
    public class Users
     {
-        [Theory]
-        [InlineData("test@test.com", 4991, 87)]
-        //[InlineData("test@test.com", 4962, 64)]
-        public async void User(string username, int presentationId, int groupId)
+
+        public StoryCreateUserModel GetUserModel(string username)
         {
-            SCLM sclm = await Utilities.GetContextAsync();
-            StoryCreateUserModel userForCreate = new StoryCreateUserModel() {
+            return new StoryCreateUserModel()
+            {
                 Username = username,
                 Email = "test@test.com",
                 Phone = "79190000000",
@@ -27,17 +25,46 @@ namespace Tests
                 Name = "Testname",
                 Password = "1234"
             };
+        }
+
+        public StoryCreateUserModel GetUserModel2(string username)
+        {
+            return new StoryCreateUserModel()
+            {
+                Username = username,
+                Email = null,
+                Phone = null,
+                BirthDate = DateTime.Now,
+                Gender = true,
+                Location = "Stavropol",
+                Name = "",
+                Password = "1234"
+            };
+        }
+
+        [Theory]
+        //[InlineData("79197391091", 4991, 87)]
+        [InlineData("test@test.com", 4991, 87)]
+        //[InlineData("test@test.com", 4962, 64)]
+        public async void User(string username, int presentationId, int groupId)
+        {
+            SCLM sclm = await Utilities.GetContextAsync();
+            StoryCreateUserModel userForCreate = GetUserModel2(username);
 
             StoryUser user = await sclm.CreateUserAsync(userForCreate);
             Assert.NotNull(user);
             user = await sclm.UserExistsAsync(user.Username);
             Assert.NotNull(user);
+
+            SCLM s = new SCLM();
+            await s.AuthAsync(Utilities.client, Utilities.secret, userForCreate.Username, userForCreate.Password);
+
             user.Name = "SuperTestuser";
             await user.SaveAsync();
             user = await sclm.GetUserAsync(user.Id);
             Assert.NotNull(user);
             Assert.True(user.Name == "SuperTestuser");
-            await user.ChangePasswordAsync("1234");
+            await user.ChangePasswordAsync("test");
 
             await user.AddToPresentationAsync(presentationId);
             var ps = await user.GetPresentations();

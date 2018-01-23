@@ -5,6 +5,7 @@
 */
 using StoryCLM.SDK;
 using StoryCLM.SDK.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using Xunit;
@@ -44,5 +45,34 @@ namespace Tests
                 }
             }
         }
+
+        const string adminUserId = "f150469c-09d1-4d5b-b99f-9abc39a69414";
+        const string managerUserId = "3ab4a1db-b434-4b00-bbd8-253863042bac";
+        const string userFromAnotheClientId = "";
+
+        [Theory]
+        [InlineData(4991)]
+        public async void UsersForPresentationsAsync(int presentationId)
+        {
+            SCLM sclm = await Utilities.GetContextAsync();
+
+            string[] usersIds = { "31e806b7-56b2-4560-ad39-2fa1a382a9d2", "d0532be9-d6d8-4401-8155-01e309f87aa7", "b2b68ca3-4e7b-4e36-b29e-dbcc06585065" };
+
+            //получаем презентацию
+            StoryPresentation presentation = await sclm.GetPresentationAsync(presentationId);
+            Assert.NotNull(presentation);
+
+            await presentation.RemoveAllUsersAsync();
+            Assert.True(presentation.Users.Count() == 0);
+
+            var users = await presentation.AddUsersAsync(usersIds);
+            Assert.True(presentation.Users.Count() == 3);
+
+            users = await presentation.AddUsersAsync(usersIds);
+            Assert.True(presentation.Users.Count() == 3);
+
+
+        }
+
     }
 }

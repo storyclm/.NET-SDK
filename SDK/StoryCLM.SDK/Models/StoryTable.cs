@@ -12,21 +12,6 @@ namespace StoryCLM.SDK.Models
 
         internal StoryTable() { }
 
-        private string ToParamString(string[] param)
-        {
-            if (param == null) return string.Empty;
-            if (param.Length == 0) return string.Empty;
-            StringBuilder result = new StringBuilder("?");
-            for (int i = 0; i < param.Length; i++)
-            {
-                result.Append("ids=");
-                result.Append(param[i]);
-                if (i != param.Length - 1)
-                    result.Append("&");
-            }
-            return result.ToString();
-        }
-
         private string ToBase64(string text)
         {
             var bytes = Encoding.UTF8.GetBytes(text);
@@ -97,7 +82,7 @@ namespace StoryCLM.SDK.Models
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> FindAsync(IEnumerable<string> ids) =>
-            await _sclm.GETAsync<IEnumerable<T>>(_sclm.kTables + Id + "/findbyids", ToParamString(ids.ToArray()));
+            await _sclm.GETAsync<IEnumerable<T>>(_sclm.kTables + Id + "/findbyids", _sclm.ToParamString(ids.ToArray()));
 
         /// <summary>
         /// Таблицы.
@@ -205,7 +190,7 @@ namespace StoryCLM.SDK.Models
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> DeleteAsync(IEnumerable<string> ids) =>
-            await _sclm.DELETEAsync<IEnumerable<T>>(_sclm.kTables + Id + "/deletemany", ToParamString(ids.ToArray()));
+            await _sclm.DELETEAsync<IEnumerable<T>>(_sclm.kTables + Id + "/deletemany", _sclm.ToParamString(ids.ToArray()));
 
         #endregion
 

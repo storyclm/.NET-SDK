@@ -38,6 +38,21 @@ namespace StoryCLM.SDK
         const string endpoint = "https://api.storyclm.com";
         const string authEndpoint = "https://auth.storyclm.com";
 
+        internal string ToParamString(string[] param)
+        {
+            if (param == null) return string.Empty;
+            if (param.Length == 0) return string.Empty;
+            StringBuilder result = new StringBuilder("?");
+            for (int i = 0; i < param.Length; i++)
+            {
+                result.Append("ids=");
+                result.Append(param[i]);
+                if (i != param.Length - 1)
+                    result.Append("&");
+            }
+            return result.ToString();
+        }
+
         #region CRUD
 
         private void ThrowResponseException(HttpResponseMessage response, string result)

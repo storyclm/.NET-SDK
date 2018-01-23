@@ -34,6 +34,53 @@ namespace StoryCLM.SDK.Models
             return contentPackage;
         }
 
+        public async Task<IEnumerable<StorySimpleUserForPresentation>> AddUsersAsync(IEnumerable<string> ids)
+        {
+            var users = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", ids);
+            Users = users;
+            return users;
+        }
+
+        public async Task<IEnumerable<StorySimpleUserForPresentation>> RemoveUsersAsync(IEnumerable<string> ids)
+        {
+            var users = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", _sclm.ToParamString(ids.ToArray()));
+            Users = users;
+            return users;
+        }
+
+        public async Task<IEnumerable<StorySimpleUserForPresentation>> SynchronizeUsersAsync(IEnumerable<string> ids)
+        {
+            var users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", ids);
+            Users = users;
+            return users;
+        }
+
+        public async Task<IEnumerable<StorySimpleUserForPresentation>> AddUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
+        {
+            var result = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", users.Select(t => t.Id));
+            Users = result;
+            return result;
+        }
+
+        public async Task<IEnumerable<StorySimpleUserForPresentation>> RemoveUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
+        {
+            var result = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", _sclm.ToParamString(users.Select(t => t.Id).ToArray()));
+            Users = result;
+            return result;
+        }
+
+        private async Task SynchronizeUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
+        {
+            Users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(_sclm.kPresentations + Id + "/users/", users.Select(t => t.Id));
+        }
+
+        public async Task RemoveAllUsersAsync() =>
+            await RemoveUsersAsync(Users);
+
+        public async Task SynchronizeUsersAsync() =>
+            await SynchronizeUsersAsync(Users);
+
+
         public int Id { get; set; }
 
         public string Name { get; set; }
