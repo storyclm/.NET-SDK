@@ -29,6 +29,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoryCLM.SDK.Content.Test",
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "StoryCLM.SDK.Users.Test", "test\StoryCLM.SDK.Users.Test\StoryCLM.SDK.Users.Test.csproj", "{AF188959-1D3F-483A-BBC8-D0E463ECC0F3}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "StoryCLM.SDK.CLMAnalitycs.Test", "test\StoryCLM.SDK.CLMAnalitycs.Test\StoryCLM.SDK.CLMAnalitycs.Test.csproj", "{342901D2-F14A-4515-A626-42468077A6A8}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -79,6 +81,10 @@ Global
 		{AF188959-1D3F-483A-BBC8-D0E463ECC0F3}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{AF188959-1D3F-483A-BBC8-D0E463ECC0F3}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{AF188959-1D3F-483A-BBC8-D0E463ECC0F3}.Release|Any CPU.Build.0 = Release|Any CPU
+		{342901D2-F14A-4515-A626-42468077A6A8}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{342901D2-F14A-4515-A626-42468077A6A8}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{342901D2-F14A-4515-A626-42468077A6A8}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{342901D2-F14A-4515-A626-42468077A6A8}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -95,6 +101,7 @@ Global
 		{A3414F54-546A-4A9C-B0A5-989CC239206F} = {5D04CA7B-8A78-4F8C-94B7-2EB1AF4EDEE6}
 		{F73EC49C-F541-4E2C-9910-199F327E712E} = {5D04CA7B-8A78-4F8C-94B7-2EB1AF4EDEE6}
 		{AF188959-1D3F-483A-BBC8-D0E463ECC0F3} = {5D04CA7B-8A78-4F8C-94B7-2EB1AF4EDEE6}
+		{342901D2-F14A-4515-A626-42468077A6A8} = {5D04CA7B-8A78-4F8C-94B7-2EB1AF4EDEE6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {E6D27E24-0461-4655-8107-D5AB45F9478B}

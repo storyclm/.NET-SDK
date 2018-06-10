@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StorySimplePresentation : StorySimpleModel, ISCLMObject<StoryPresentation>
+    public class StorySimplePresentation : StorySimpleModel<StoryPresentation>
     {
         /// <summary>
         /// Режим разработки
@@ -22,16 +22,12 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public bool Lockout { get; set; }
 
-        public SCLM Context { get; private set; }
-
-        public async Task<StoryPresentation> LoadAsync()
+        public async override Task<StoryPresentation> LoadAsync()
         {
             StoryPresentation presentation = await Context.GetPresentationAsync(Id);
             presentation._sclm = Context;
             return presentation;
         }
 
-        public void SetContext(SCLM context) =>
-            Context = context;
     }
 }

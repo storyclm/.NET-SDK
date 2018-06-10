@@ -62,7 +62,7 @@ namespace StoryCLM.SDK.Users.Test
         }
 
         [Theory]
-        [InlineData(0, "test@test.com", "1234", "client_18_4", "1cdbbf4374634314bfd5607a79a0b5578d05130732dc4a37ac8c046525a27075")]
+        [InlineData(0, "test@test.com", "1234", "client_18_4", "")]
         public async void Login(int uc, string username, string password, string clientId, string secret)
         {
             SCLM sclm = await Utilities.GetContextAsync(uc);

@@ -5,14 +5,9 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StorySimpleSlide : StorySimpleModel, ISCLMObject<StorySlide>
+    public class StorySimpleSlide : StorySimpleModel<StorySlide>
     {
-        public SCLM Context { get; private set; }
-
-        public async Task<StorySlide> LoadAsync() =>
+        public async override Task<StorySlide> LoadAsync() =>
             await Context.GetSlideAsync(Id);
-
-        public void SetContext(SCLM context) =>
-            Context = context;
     }
 }

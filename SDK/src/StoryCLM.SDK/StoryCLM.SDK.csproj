@@ -2,7 +2,7 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard1.1</TargetFramework>
-    <Version>1.7.0</Version>
+    <Version>2.0.0</Version>
     <Description>StoryCLM — a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/17642277</PackageIconUrl>
     <Authors>Breffi LLC</Authors>
@@ -15,8 +15,8 @@
     <PackageProjectUrl>https://breffi.ru/en/storyclm</PackageProjectUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>StoryCLM.SDK</PackageId>
-    <AssemblyVersion>1.8.0.0</AssemblyVersion>
-    <FileVersion>1.8.0.0</FileVersion>
+    <AssemblyVersion>2.0.0.0</AssemblyVersion>
+    <FileVersion>2.0.0.0</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>

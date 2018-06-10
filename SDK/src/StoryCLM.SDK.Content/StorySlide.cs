@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StorySlide : StorySimpleModel
+    public class StorySlide : StorySimpleModelBase
     {
         internal StorySlide() { }
 

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StoryMediafile : StorySimpleModel
+    public class StoryMediafile : StorySimpleModelBase
     {
         internal StoryMediafile() { }
 

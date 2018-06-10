@@ -90,12 +90,16 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public IEnumerable<StorySimplePresentation> Presentations
         {
-            get => _presentations;
-            set
+            get
             {
-                foreach (var t in value)
+                if (_presentations == null) return null;
+                foreach (var t in _presentations)
                     t.SetContext(_sclm);
 
+                return _presentations;
+            }
+            set
+            {
                 _presentations = value;
             }
         }
@@ -107,12 +111,16 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public IEnumerable<StorySimpleUser> Users
         {
-            get => _users;
-            set
+            get
             {
-                foreach (var t in value)
+                if (_users == null) return null;
+                foreach (var t in _users)
                     t.SetContext(_sclm);
 
+                return _users;
+            }
+            set
+            {
                 _users = value;
             }
         }

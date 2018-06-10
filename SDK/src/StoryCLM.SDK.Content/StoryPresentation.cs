@@ -123,10 +123,15 @@ namespace StoryCLM.SDK.Content
 
         public StoryContentPackage SourcesFolder
         {
-            get => _sourcesFolder;
+            get
+            {
+                if (_sourcesFolder == null) return null;
+                _sourcesFolder.PresentationId = Id;
+                _sourcesFolder.SetContext(_sclm);
+                return _sourcesFolder;
+            }
             set
             {
-                value.SetContext(_sclm);
                 _sourcesFolder = value;
             }
         }
@@ -138,12 +143,15 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public IEnumerable<StorySimpleMediafile> MediaFiles
         {
-            get => _mediaFiles;
+            get
+            {
+                if (_mediaFiles == null) return null;
+                foreach (var t in _mediaFiles)
+                    t.SetContext(_sclm);
+                return _mediaFiles;
+            }
             set
             {
-                foreach (var t in value)
-                    t.SetContext(_sclm);
-
                 _mediaFiles = value;
             }
         }
@@ -155,12 +163,15 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public IEnumerable<StorySimpleSlide> Slides
         {
-            get => _slides;
+            get
+            {
+                if (_slides == null) return null;
+                foreach (var t in _slides)
+                    t.SetContext(_sclm);
+                return _slides;
+            }
             set
             {
-                foreach (var t in value)
-                    t.SetContext(_sclm);
-
                 _slides = value;
             }
         }
@@ -170,10 +181,25 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public IEnumerable<int> Presentations { get; set; }
 
+        IEnumerable<StorySimpleUserForPresentation> _users;
+
         /// <summary>
         /// Пользователи
         /// </summary>
-        public IEnumerable<StorySimpleUserForPresentation> Users { get; set; }
+        public IEnumerable<StorySimpleUserForPresentation> Users
+        {
+            get
+            {
+                if (_users == null) return null;
+                foreach (var t in _users)
+                    t.SetContext(_sclm);
+                return _users;
+            }
+            set
+            {
+                _users = value;
+            }
+        }
 
     }
 }

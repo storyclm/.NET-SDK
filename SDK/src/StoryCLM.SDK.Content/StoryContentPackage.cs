@@ -5,14 +5,9 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StoryContentPackage : ISCLMObject<StoryPackageSas>
+    public class StoryContentPackage : StorySimpleModel<StoryPackageSas>
     {
         internal StoryContentPackage() { }
-
-        /// <summary>
-        /// Идентификатор
-        /// </summary>
-        public int Id { get; set; }
 
         /// <summary>
         /// Идентификатор блоба
@@ -30,11 +25,6 @@ namespace StoryCLM.SDK.Content
         public string MIMEType { get; set; }
 
         /// <summary>
-        /// Рефизия
-        /// </summary>
-        public int Revision { get; set; }
-
-        /// <summary>
         /// Дата создания
         /// </summary>
         public DateTime Created { get; set; }
@@ -44,12 +34,10 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public DateTime Updated { get; set; }
 
-        public SCLM Context { get; private set; }
+        internal int PresentationId { get; set; }
 
-        public async Task<StoryPackageSas> LoadAsync() =>
-            await Context.GetContentPackageAsync(Id);
+        public async override Task<StoryPackageSas> LoadAsync() =>
+            await Context.GetContentPackageAsync(PresentationId);
 
-        public void SetContext(SCLM context) =>
-            Context = context;
     }
 }
