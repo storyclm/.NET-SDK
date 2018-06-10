@@ -14,12 +14,5 @@ namespace StoryCLM.SDK.Users
 
         public string Username { get; set; }
 
-        public async Task<StoryUser> GetUserAsync()
-        {
-            StoryUser user = await _sclm.GETAsync<StoryUser>(new Uri($"{_sclm.Endpoint}/{UsersExtensions.Version}/{UsersExtensions.Path}/{Id}", UriKind.Absolute));
-            user._sclm = _sclm;
-            return user;
-        }
-
     }
 }

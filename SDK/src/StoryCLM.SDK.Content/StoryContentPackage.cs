@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StoryContentPackage
+    public class StoryContentPackage : ISCLMObject<StoryPackageSas>
     {
         internal StoryContentPackage() { }
 
@@ -43,5 +43,13 @@ namespace StoryCLM.SDK.Content
         /// Дата обновления
         /// </summary>
         public DateTime Updated { get; set; }
+
+        public SCLM Context { get; private set; }
+
+        public async Task<StoryPackageSas> LoadAsync() =>
+            await Context.GetContentPackageAsync(Id);
+
+        public void SetContext(SCLM context) =>
+            Context = context;
     }
 }

@@ -18,6 +18,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\StoryCLM.SDK.Users\StoryCLM.SDK.Users.csproj" />
     <ProjectReference Include="..\StoryCLM.SDK\StoryCLM.SDK.csproj" />
   </ItemGroup>
 

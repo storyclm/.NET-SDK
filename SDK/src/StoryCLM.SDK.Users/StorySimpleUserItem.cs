@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StoryCLM.SDK.Models
+namespace StoryCLM.SDK.Users
 {
    public class StorySimpleUserItem
     {
