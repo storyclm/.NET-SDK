@@ -3,9 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace StoryCLM.SDK.Models
+namespace StoryCLM.SDK.Users
 {
-    public class StorySimpleUser
+    public class StorySimpleUser : ISCLMObject<StoryUser>
     {
         /// <summary>
         /// Идентификатор
@@ -16,5 +16,13 @@ namespace StoryCLM.SDK.Models
         /// Роль пользователя в системе
         /// </summary>
         public int Role { get; set; }
+
+        public SCLM Context  { get; private set;}
+
+        public async Task<StoryUser> LoadAsync() =>
+            await Context.GetUserAsync(Id);
+
+        public void SetContext(SCLM context) =>
+            Context = context;
     }
 }

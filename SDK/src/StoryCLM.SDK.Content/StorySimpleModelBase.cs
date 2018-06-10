@@ -1,16 +1,19 @@
-﻿using StoryCLM.SDK.Models;
-using StoryCLM.SDK.Users;
-using System;
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StorySimpleUserForPresentation : StorySimpleUser
+    public class StorySimpleModelBase
     {
         /// <summary>
-        /// Версия презентации у пользователя
+        /// Идентификатор 
+        /// </summary>
+        public int Id { get; set; }
+
+        /// <summary>
+        /// Ревизия
         /// </summary>
         public int Revision { get; set; }
 

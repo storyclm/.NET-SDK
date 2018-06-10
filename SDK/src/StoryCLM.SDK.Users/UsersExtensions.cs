@@ -14,7 +14,7 @@ namespace StoryCLM.SDK.Users
         {
             if (string.IsNullOrEmpty(username)) throw new ArgumentNullException(nameof(username));
             StoryUser user = await sclm.GETAsync<StoryUser>(new Uri($"{sclm.Endpoint}/{Version}/{Path}/exists?username={username}", UriKind.Absolute));
-            user._sclm = sclm;
+            user.Context = sclm;
             return user;
         }
 
@@ -22,14 +22,14 @@ namespace StoryCLM.SDK.Users
         {
             if (user == null) throw new ArgumentNullException(nameof(user));
             StoryUser u = await sclm.POSTAsync<StoryUser>(new Uri($"{sclm.Endpoint}/{Version}/{Path}", UriKind.Absolute), user);
-            u._sclm = sclm;
+            u.Context = sclm;
             return u;
         }
 
         public static async Task<StoryUser> GetUserAsync(this SCLM sclm, string userId)
         {
             StoryUser user = await sclm.GETAsync<StoryUser>(new Uri($"{sclm.Endpoint}/{Version}/{Path}/{userId}", UriKind.Absolute));
-            user._sclm = sclm;
+            user.Context = sclm;
             return user;
         }
 

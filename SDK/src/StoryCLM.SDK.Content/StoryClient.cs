@@ -1,4 +1,5 @@
 ﻿using StoryCLM.SDK.Models;
+using StoryCLM.SDK.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,15 +12,6 @@ namespace StoryCLM.SDK.Content
         internal SCLM _sclm;
 
         internal StoryClient() { }
-
-        public async Task<StoryPresentation> GetPresentationAsync(int id)
-        {
-            if (Presentations == null) return null;
-            if (Presentations.Count() == 0 || !Presentations.Select(t => t.Id).Contains(id)) return null;
-            StoryPresentation presentation = await _sclm.GetPresentationAsync(id);
-            presentation._sclm = _sclm;
-            return presentation;
-        }
 
         /// <summary>
         /// Идентификатор клиента в системе
@@ -91,15 +83,47 @@ namespace StoryCLM.SDK.Content
         /// </summary>
         public string GeolocationTable { get; set; }
 
+        IEnumerable<StorySimplePresentation> _presentations;
+
         /// <summary>
         /// Список презентаций клиента
         /// </summary>
-        public IEnumerable<StorySimplePresentation> Presentations { get; set; }
+        public IEnumerable<StorySimplePresentation> Presentations
+        {
+            get
+            {
+                if (_presentations == null) return null;
+                foreach (var t in _presentations)
+                    t.SetContext(_sclm);
+
+                return _presentations;
+            }
+            set
+            {
+                _presentations = value;
+            }
+        }
+
+        IEnumerable<StorySimpleUser> _users;
 
         /// <summary>
         /// Список пользователей клиента
         /// </summary>
-        public IEnumerable<StorySimpleUser> Users { get; set; }
+        public IEnumerable<StorySimpleUser> Users
+        {
+            get
+            {
+                if (_users == null) return null;
+                foreach (var t in _users)
+                    t.SetContext(_sclm);
+
+                return _users;
+            }
+            set
+            {
+                _users = value;
+            }
+        }
 
         /// <summary>
         /// Список групп клиента

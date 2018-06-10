@@ -5,16 +5,13 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
 {
-    public class StorySimpleModel
+    public abstract class StorySimpleModel<T> : StorySimpleModelBase, ISCLMObject<T>
     {
-        /// <summary>
-        /// Идентификатор 
-        /// </summary>
-        public int Id { get; set; }
+        public SCLM Context { get; private set; }
 
-        /// <summary>
-        /// Ревизия
-        /// </summary>
-        public int Revision { get; set; }
+        public abstract Task<T> LoadAsync();
+
+        public void SetContext(SCLM context) =>
+            Context = context;
     }
 }
