@@ -71,10 +71,7 @@ namespace StoryCLM.SDK
             return _endpoints[name];
         }
 
-        public Uri Endpoint
-        {
-            get => _endpoints[_api];
-        }
+        public Uri Endpoint => _endpoints[_api];
 
         public Uri AuthEndpoint
         {
