@@ -75,20 +75,35 @@ namespace StoryCLM.SDK
                 {
                     try
                     {
-                        cancellationTokenSource.CancelAfter(command.ExpiryTime != TimeSpan.Zero ? (int)command.ExpiryTime.TotalMilliseconds : int.MaxValue);
-                        HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(command.Method), command.Uri);
-                        //пропускаем через декораторы
-                        await HttpRequestPipeline(command, request, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
-                        //пропускаем через обработчик команды
-                        await command.OnExecuting(request, cancellationTokenSource.Token).ConfigureAwait(false);
-                        if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
-                        HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationTokenSource.Token).ConfigureAwait(false);
-                        if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
-                        //пропускаем через декораторы
-                        await HttpResponsePipeline(command, response, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
-                        //пропускаем через обработчик команды
-                        await command.OnExecuted(response, cancellationTokenSource.Token).ConfigureAwait(false);
-                        return;
+                        DateTime now = DateTime.Now;
+                        try // ловим таймаут
+                        {
+                            cancellationTokenSource.CancelAfter(command.ExpiryTime != TimeSpan.Zero ? (int)command.ExpiryTime.TotalMilliseconds : int.MaxValue);
+                            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(command.Method), command.Uri);
+                            //пропускаем запрос через декораторы
+                            await HttpRequestPipeline(command, request, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
+                            if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                            //пропускаем запрос через обработчик команды
+                            await command.OnExecuting(request, cancellationTokenSource.Token).ConfigureAwait(false);
+                            if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                            HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationTokenSource.Token).ConfigureAwait(false);
+                            if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                            //пропускаем ответ через декораторы
+                            await HttpResponsePipeline(command, response, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
+                            if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                            //пропускаем ответ через обработчик команды
+                            await command.OnExecuted(response, cancellationTokenSource.Token).ConfigureAwait(false);
+                            return;
+                        }
+                        catch (Exception ex) //таймаут
+                        {
+                            if (ex is OperationCanceledException
+                                && command.ExpiryTime != TimeSpan.Zero
+                                && (now + command.ExpiryTime) < DateTime.Now)
+                                throw new TimeoutException(string.Empty, ex);
+
+                            throw;
+                        }
                     }
                     catch (Exception ex)
                     {
@@ -108,10 +123,11 @@ namespace StoryCLM.SDK
                             if (retryPolicy.ExponentialBackoff) // экспоненциальная задержка
                             {
                                 var pow = Math.Pow(2, retryCount - 1);
-                                await Task.Delay((int)(retryInterval.TotalMilliseconds * (pow - 1) / 2), cancellationTokenSource.Token).ConfigureAwait(false);
+                                int delay = (int)(retryInterval.TotalMilliseconds * (pow - 1) / 2);
+                                await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
                             }
                             else
-                                await Task.Delay((int)retryInterval.TotalMilliseconds * retryCount, cancellationTokenSource.Token).ConfigureAwait(false);
+                                await Task.Delay((int)retryInterval.TotalMilliseconds * retryCount, cancellationTokenSource.Token).ConfigureAwait(false); // линейная задержка
                         }
 
                         retryCount++;
@@ -144,6 +160,14 @@ namespace StoryCLM.SDK
 
         #region Decorators
 
+        /// <summary>
+        /// Конеыеер запроса.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="request"></param>
+        /// <param name="parameters"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         async Task HttpRequestPipeline(IHttpCommand command, HttpRequestMessage request, IDictionary<string, object> parameters, CancellationToken token)
         {
             if (_httpDecorators == null
@@ -164,6 +188,14 @@ namespace StoryCLM.SDK
             }
         }
 
+        /// <summary>
+        /// Коневеер ответа
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="response"></param>
+        /// <param name="parameters"></param>
+        /// <param name="token"></param>
+        /// <returns></returns>
         async Task HttpResponsePipeline(IHttpCommand command, HttpResponseMessage response, IDictionary<string, object> parameters, CancellationToken token)
         {
             if (_httpDecorators == null
@@ -184,6 +216,9 @@ namespace StoryCLM.SDK
             }
         }
 
+        /// <summary>
+        /// Набор декораторов.
+        /// </summary>
         IDictionary<Type, IHttpPiplineDecorator> _httpDecorators = new Dictionary<Type, IHttpPiplineDecorator>();
 
         public void AddHttpDecorator<T>(T decorator) where T : class, IHttpPiplineDecorator =>
@@ -203,7 +238,7 @@ namespace StoryCLM.SDK
         
         #endregion
 
-            #region CRUD
+        #region CRUD
 
         /// <summary>
         /// Список исключений при которых необходимо повторно выполнить команду.
@@ -215,9 +250,9 @@ namespace StoryCLM.SDK
                     typeof(EndOfStreamException),
                     typeof(InvalidDataException),
                     typeof(InvalidOperationException),
-                    typeof(OperationCanceledException),
                     typeof(TaskCanceledException)
                 };
+
 
         bool AllowableHttErrorCodesForRetry(Exception ex, IEnumerable<int> codes)
         {
@@ -283,7 +318,7 @@ namespace StoryCLM.SDK
             => await BackendCommand<T>(_patch, uri, o, cancellationToken, retryPolicy);
 
         public async Task<T> GETAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
-            => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy);
+            => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy ?? QueryPolicy);
 
         public async Task<T> DELETEAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_delete, uri, null, cancellationToken, retryPolicy);
