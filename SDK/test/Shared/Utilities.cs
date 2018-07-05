@@ -1,4 +1,5 @@
 ﻿using StoryCLM.SDK;
+using StoryCLM.SDK.Authentication;
 using System.Threading.Tasks;
 
 namespace Shared
@@ -14,20 +15,14 @@ namespace Shared
             {
                 case 0: // service
                     {
-                        string clientId = "client_18_1";
-                        string secret = "";
                         SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(clientId, secret);
+                        await sclm.AuthAsync(Settings.ServiceClientId, Settings.ServiceSecret);
                         return sclm;
                     }
                 case 1: // application (user)
                     {
-                        string client = "client_18_4";
-                        string secret = "";
-                        string password = "";
-                        string username = "rsk-k161@ya.ru";
                         SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(client, secret, username, password);
+                        await sclm.AuthAsync(Settings.UserClientId, Settings.UserSecret, Settings.Username, Settings.Password);
                         return sclm;
                     }
             }

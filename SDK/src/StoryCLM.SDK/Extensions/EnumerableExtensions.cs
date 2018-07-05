@@ -25,7 +25,8 @@ namespace StoryCLM.SDK.Extensions
             return result.ToString();
         }
 
-        public static string ToIdsQueryArray<T>(this IEnumerable<T> e, bool last = true) => e.ToQueryArray("ids", last);
+        public static string ToIdsQueryArray<T>(this IEnumerable<T> e, bool last = true) => 
+            e.ToQueryArray("ids", last);
 
     }
 }

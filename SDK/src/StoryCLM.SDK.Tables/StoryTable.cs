@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Tables
@@ -21,7 +22,7 @@ namespace StoryCLM.SDK.Tables
         }
 
         Uri GetUri(string query) =>
-            new Uri($"{_sclm.Endpoint}/{TablesExtensions.Version}/{TablesExtensions.Path}/{query}", UriKind.Absolute);
+            new Uri($"{_sclm.GetEndpoint("api")}{TablesExtensions.Version}/{TablesExtensions.Path}/{query}", UriKind.Absolute);
 
         #region Base
 
@@ -44,7 +45,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <returns></returns>
         public async Task<long> CountAsync(string query = null) =>
-            (await _sclm.GETAsync<StoryCount>(GetUri(Id + "/count" + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}"))))
+            (await _sclm.GETAsync<StoryCount>(GetUri(Id + "/count" + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")), CancellationToken.None))
             .Count;
 
 
@@ -56,7 +57,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="date">Дата, после которой будет произведена выборка. Необязательный параметр.</param>
         /// <returns></returns>
         public async Task<long> LogCountAsync(DateTime? date = null) =>
-            (await _sclm.GETAsync<StoryCount>(GetUri(Id + "/logcount" + (date == null ? string.Empty : $"?date={date.Value.ToUnix()}"))))
+            (await _sclm.GETAsync<StoryCount>(GetUri(Id + "/logcount" + (date == null ? string.Empty : $"?date={new DateTimeOffset(date.Value).ToUnixTimeSeconds()}")), CancellationToken.None))
             .Count;
 
         #endregion
@@ -72,7 +73,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
         public async Task<T> FindAsync(string id) =>
-            await _sclm.GETAsync<T>(GetUri(Id + "/findbyid/" + id));
+            await _sclm.GETAsync<T>(GetUri(Id + "/findbyid/" + id), CancellationToken.None);
 
         /// <summary>
         /// Таблицы.
@@ -83,7 +84,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> FindAsync(IEnumerable<string> ids) =>
-            await _sclm.GETAsync<IEnumerable<T>>(GetUri(Id + "/findbyids" + ids.ToIdsQueryArray()));
+            await _sclm.GETAsync<IEnumerable<T>>(GetUri(Id + "/findbyids" + ids.ToIdsQueryArray()), CancellationToken.None);
 
         /// <summary>
         /// Таблицы.
@@ -103,7 +104,7 @@ namespace StoryCLM.SDK.Tables
                 + (sort == null ? "" : $"&sort={sort}")
                 + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}")
                 + (string.IsNullOrEmpty(query) ? "" : $"&query={query}");
-            return await _sclm.GETAsync<IEnumerable<T>>(GetUri(resource));
+            return await _sclm.GETAsync<IEnumerable<T>>(GetUri(resource), CancellationToken.None);
         }
 
         #endregion
@@ -120,7 +121,7 @@ namespace StoryCLM.SDK.Tables
         /// <returns></returns>
         public async Task<IEnumerable<StoryLogTable>> LogAsync(DateTime? date = null, int skip = 0, int take = 100) =>
             await _sclm.GETAsync<IEnumerable<StoryLogTable>>(GetUri(Id + $"/log?skip={skip}&take={take}" +
-                (date == null ? string.Empty : $"&date={date.Value.ToUnix()}")));
+                (date == null ? string.Empty : $"&date={new DateTimeOffset(date.Value).ToUnixTimeSeconds()}")), CancellationToken.None);
 
         #endregion
 
@@ -135,7 +136,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="o">Сущность</param>
         /// <returns>Новая запись с добавлением идендификатора</returns>
         public async Task<T> InsertAsync(T o) =>
-            await _sclm.POSTAsync<T>(GetUri(Id + "/insert"), o);
+            await _sclm.POSTAsync<T>(GetUri(Id + "/insert"), o, CancellationToken.None);
 
         /// <summary>
         /// Таблицы.
@@ -145,7 +146,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="o">Сущность</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> InsertAsync(IEnumerable<T> o) =>
-            await _sclm.POSTAsync<IEnumerable<T>>(GetUri(Id + "/insertmany"), o);
+            await _sclm.POSTAsync<IEnumerable<T>>(GetUri(Id + "/insertmany"), o, CancellationToken.None);
 
         #endregion
 
@@ -159,7 +160,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="o">Сущность</param>
         /// <returns></returns>
         public async Task<T> UpdateAsync(T o) =>
-            await _sclm.PUTAsync<T>(GetUri(Id + "/update"), o);
+            await _sclm.PUTAsync<T>(GetUri(Id + "/update"), o, CancellationToken.None);
 
         /// <summary>
         /// Таблицы.
@@ -169,7 +170,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="o">Сущность</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> UpdateAsync(IEnumerable<T> o) =>
-            await _sclm.PUTAsync<IEnumerable<T>>(GetUri(Id + "/updatemany"), o);
+            await _sclm.PUTAsync<IEnumerable<T>>(GetUri(Id + "/updatemany"), o, CancellationToken.None);
 
         #endregion
 
@@ -181,7 +182,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
         public async Task<T> DeleteAsync(string id) =>
-            await _sclm.DELETEAsync<T>(GetUri(Id + "/delete/" + id));
+            await _sclm.DELETEAsync<T>(GetUri(Id + "/delete/" + id), CancellationToken.None);
 
         /// <summary>
         /// Удаляет записи в таблице по списку идентификаторов.
@@ -189,7 +190,7 @@ namespace StoryCLM.SDK.Tables
         /// <param name="ids">Список идентификаторов записей в таблице</param>
         /// <returns></returns>
         public async Task<IEnumerable<T>> DeleteAsync(IEnumerable<string> ids) =>
-            await _sclm.DELETEAsync<IEnumerable<T>>(GetUri(Id + "/deletemany" + ids.ToIdsQueryArray()));
+            await _sclm.DELETEAsync<IEnumerable<T>>(GetUri(Id + "/deletemany" + ids.ToIdsQueryArray()), CancellationToken.None);
 
         #endregion
 
@@ -202,22 +203,22 @@ namespace StoryCLM.SDK.Tables
 
         public async Task<T> MaxAsync<T>(string field, string query = null)
         {
-            return (await _sclm.GETAsync<AggregationResult<T>>(GetUri(Id + "/max/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")))).Result;
+            return (await _sclm.GETAsync<AggregationResult<T>>(GetUri(Id + "/max/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")), CancellationToken.None)).Result;
         }
 
         public async Task<M> MinAsync<M>(string field, string query = null)
         {
-            return (await _sclm.GETAsync<AggregationResult<M>>(GetUri(Id + "/min/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")))).Result;
+            return (await _sclm.GETAsync<AggregationResult<M>>(GetUri(Id + "/min/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")), CancellationToken.None)).Result;
         }
 
         public async Task<M> SumAsync<M>(string field, string query = null)
         {
-            return (await _sclm.GETAsync<AggregationResult<M>>(GetUri(Id + "/sum/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")))).Result;
+            return (await _sclm.GETAsync<AggregationResult<M>>(GetUri(Id + "/sum/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")), CancellationToken.None)).Result;
         }
 
         public async Task<double> AvgAsync(string field, string query = null)
         {
-            return (await _sclm.GETAsync<AggregationResult<double>>(GetUri(Id + "/avg/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")))).Result;
+            return (await _sclm.GETAsync<AggregationResult<double>>(GetUri(Id + "/avg/" + field + (string.IsNullOrEmpty(query) ? string.Empty : $"?query={query}")), CancellationToken.None)).Result;
         }
 
         private async Task<T> FLAsync(bool first, string query = null, string sortfield = null, int? sort = null)
@@ -228,7 +229,7 @@ namespace StoryCLM.SDK.Tables
                 + (sort == null ? "" : $"&sort={sort}")
                 + (string.IsNullOrEmpty(sortfield) ? "" : $"&sortfield={sortfield}")
                 + (string.IsNullOrEmpty(query) ? "" : $"&query={query}");
-            return await _sclm.GETAsync<T>(GetUri(resource));
+            return await _sclm.GETAsync<T>(GetUri(resource), CancellationToken.None);
         }
 
         public async Task<T> FirstAsync(string query = null, string sortfield = null, int? sort = null) =>

@@ -4,6 +4,7 @@ using StoryCLM.SDK.Models;
 using System;
 using System.Collections.Generic;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace SroryCLM.SDK.CLMAnalitycs
@@ -26,7 +27,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
         const string kAnalitycsSlidesdemonstrationsCount = @"slidesdemonstrations/count";
 
        static Uri GetUri(SCLM sclm, string query) =>
-            new Uri($"{sclm.Endpoint}/{Version}/{Path}/{query}", UriKind.Absolute);
+            new Uri($"{sclm.GetEndpoint("api")}/{Version}/{Path}/{query}", UriKind.Absolute);
 
         #region Sessions
 
@@ -46,7 +47,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<IEnumerable<StoryPresentationSession>> GetSessionsFeedAsync(this SCLM sclm,
@@ -63,7 +64,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<long> GetSessionsCountAsync(this SCLM sclm, 
@@ -79,7 +80,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()))).Count;
+            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
         }
 
         #endregion
@@ -102,7 +103,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<IEnumerable<StorySlideDemonstration>> GetSlidesDemonstrationsFeedAsync(this SCLM sclm,
@@ -119,7 +120,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<long> GetSlidesDemonstrationsCountAsync(this SCLM sclm,
@@ -135,7 +136,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"completeOnly={completeOnly}");
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()))).Count;
+            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
         }
 
         #endregion
@@ -156,7 +157,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"skip={skip}&take={take}");
-            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<IEnumerable<StoryCustomEvent>> GetCustomEventsFeedAsync(this SCLM sclm,
@@ -171,7 +172,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
             query.Append($"skip={skip}&take={take}");
-            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()));
+            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()), CancellationToken.None);
         }
 
         public static async Task<long> GetCustomEventsCountAsync(this SCLM sclm, 
@@ -185,7 +186,7 @@ namespace SroryCLM.SDK.CLMAnalitycs
             query.Append(finish.ToQuery(nameof(finish), false));
             query.Append(presentationsIds.ToQueryArray("pIds", false));
             query.Append(usersIds.ToQueryArray("uIds", false));
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()))).Count;
+            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
         }
 
         #endregion
