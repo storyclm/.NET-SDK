@@ -156,16 +156,6 @@ namespace StoryCLM.SDK
             return _endpoints[name];
         }
 
-<<<<<<< HEAD
-        public Uri Endpoint => _endpoints[_api];
-
-        public Uri AuthEndpoint
-        {
-            get => _endpoints[_auth];
-        }
-
-=======
->>>>>>> release/v.2.1.0
         #endregion
 
         #region Decorators
