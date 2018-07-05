@@ -1,19 +1,18 @@
 ﻿/*!
-* StoryCLM.SDK Library v1.6.6
+* StoryCLM.SDK Library v2.3.0
 * Copyright(c) 2018, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
-using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
-using StoryCLM.SDK.Extensions;
 using StoryCLM.SDK.Models;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Net.Http.Headers;
-using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StoryCLM.SDK
@@ -22,39 +21,109 @@ namespace StoryCLM.SDK
     {
         const string _api = "api";
         const string _auth = "auth";
-
-        const string kMediaTypeHeader = "application/json";
+        const string _myo = "myo";
 
         const string _post = "POST";
         const string _put = "PUT";
         const string _get = "GET";
         const string _delete = "DELETE";
+        const string _patch = "PATCH";
 
-        readonly IDictionary<string, Uri> _endpoints = new Dictionary<string, Uri>();
         static readonly HttpClient _httpClient;
 
-        string _clientId;
-        string _clientSecret;
-
-        public StoryToken Token { get; set; }
-        public Encoding Encoding { get; set; } = Encoding.UTF8;
+        ILogger _logger;
 
         static SCLM()
         {
             _httpClient = new HttpClient(new HttpClientHandler()
             {
                 AllowAutoRedirect = false,
-                UseCookies = false
+                UseCookies = false,
             });
+            _httpClient.DefaultRequestHeaders.Clear();
+            _httpClient.DefaultRequestHeaders.ConnectionClose = true;
         }
 
-        public SCLM()
+        public SCLM(ILogger logger = null)
         {
             SetEndpoint(_api, "https://api.storyclm.com");
             SetEndpoint(_auth, "https://auth.storyclm.com");
+            SetEndpoint(_myo, "https://myosotis.storyclm.com");
+            _logger = logger;
+        }
+
+        /// <summary>
+        /// Выполняет команду.
+        /// </summary>
+        /// <param name="command"></param>
+        /// <param name="retryPolicy"></param>
+        /// <param name="cancellationToken"></param>
+        /// <param name="logger"></param>
+        /// <returns></returns>
+        public virtual async Task ExecuteHttpCommand(IHttpCommand command,
+            IRetryPolicy retryPolicy,
+            CancellationToken cancellationToken,
+            ILogger logger = null)
+        {
+            using (CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            {
+                if (command == null) return;
+                bool retry = retryPolicy == null ? false : retryPolicy.RetriesCount > 0;
+                TimeSpan retryInterval = retryPolicy?.Interval ?? TimeSpan.Zero;
+                int retryCount = 1;
+                do
+                {
+                    try
+                    {
+                        cancellationTokenSource.CancelAfter(command.ExpiryTime != TimeSpan.Zero ? (int)command.ExpiryTime.TotalMilliseconds : int.MaxValue);
+                        HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(command.Method), command.Uri);
+                        //пропускаем через декораторы
+                        await HttpRequestPipeline(command, request, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
+                        //пропускаем через обработчик команды
+                        await command.OnExecuting(request, cancellationTokenSource.Token).ConfigureAwait(false);
+                        if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                        HttpResponseMessage response = await _httpClient.SendAsync(request, HttpCompletionOption.ResponseHeadersRead, cancellationTokenSource.Token).ConfigureAwait(false);
+                        if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
+                        //пропускаем через декораторы
+                        await HttpResponsePipeline(command, response, request.Properties, cancellationTokenSource.Token).ConfigureAwait(false);
+                        //пропускаем через обработчик команды
+                        await command.OnExecuted(response, cancellationTokenSource.Token).ConfigureAwait(false);
+                        return;
+                    }
+                    catch (Exception ex)
+                    {
+                        command.Exception = ex;
+                        //обрабатываем повтор.
+                        if (!retry
+                            || retryPolicy == null
+                            || retryCount >= retryPolicy.RetriesCount) throw;
+
+                        //необходим ли повтор (повтор по условию).
+                        if (retryPolicy.Predicate != null)
+                            if (!retryPolicy.Predicate(command.Exception)) throw;
+
+                        //задержка между повторами
+                        if (retryInterval > TimeSpan.Zero) // без задержки или с задержкой
+                        {
+                            if (retryPolicy.ExponentialBackoff) // экспоненциальная задержка
+                            {
+                                var pow = Math.Pow(2, retryCount - 1);
+                                await Task.Delay((int)(retryInterval.TotalMilliseconds * (pow - 1) / 2), cancellationTokenSource.Token).ConfigureAwait(false);
+                            }
+                            else
+                                await Task.Delay((int)retryInterval.TotalMilliseconds * retryCount, cancellationTokenSource.Token).ConfigureAwait(false);
+                        }
+
+                        retryCount++;
+                    }
+                }
+                while (retry);
+            }
         }
 
         #region Endpoints
+
+        readonly IDictionary<string, Uri> _endpoints = new Dictionary<string, Uri>();
 
         public void SetEndpoint(string name, string value)
         {
@@ -71,149 +140,156 @@ namespace StoryCLM.SDK
             return _endpoints[name];
         }
 
-        public Uri Endpoint
-        {
-            get => _endpoints[_api];
-        }
-
-        public Uri AuthEndpoint
-        {
-            get => _endpoints[_auth];
-        }
-
         #endregion
 
-        #region CRUD
+        #region Decorators
 
-        public virtual async Task<T> SendAsync<T>(string method,
-            Uri uri,
-            object o = null,
-            Action<HttpRequestMessage> OnExecuting = null,
-            Func<HttpResponseMessage, T> OnExecuted = null,
-            string contentType = kMediaTypeHeader)
+        async Task HttpRequestPipeline(IHttpCommand command, HttpRequestMessage request, IDictionary<string, object> parameters, CancellationToken token)
         {
-            if (uri == null) throw new ArgumentNullException(nameof(uri));
-            _httpClient.DefaultRequestHeaders.Clear();
-            await RefreshTokenAsync();
-            HttpRequestMessage request = new HttpRequestMessage(new HttpMethod(method), uri);
-            request.Headers.Accept.Add(new MediaTypeWithQualityHeaderValue(contentType));
-            request.Headers.Authorization = new AuthenticationHeaderValue("Bearer", Token?.AccessToken ?? string.Empty);
-            if (OnExecuting == null)
+            if (_httpDecorators == null
+                || _httpDecorators.Count() == 0
+                || request == null) return;
+
+            foreach (var t in _httpDecorators)
             {
-                if (o != null)
-                    request.Content = new StringContent(await Task.Factory.StartNew(() => JsonConvert.SerializeObject(o)).ConfigureAwait(false), Encoding, contentType);
-            }
-            else
-                OnExecuting(request);
-
-            HttpResponseMessage response = await _httpClient.SendAsync(request).ConfigureAwait(false);
-            if (OnExecuted == null)
-            {
-                if (response.StatusCode == HttpStatusCode.NoContent) return default(T);
-                string content = await response.Content.ReadAsStringAsync();
-                if (!(response.StatusCode == HttpStatusCode.OK
-                    || response.StatusCode == HttpStatusCode.Created)) throw new InvalidOperationException($"Code: {response.StatusCode}; {content}");
-
-                return await Task.Factory.StartNew(() => JsonConvert.DeserializeObject<T>(content)).ConfigureAwait(false);
-            }
-            else
-                return OnExecuted(response);
-        }
-
-        public async Task<T> POSTAsync<T>(Uri uri, object o)
-            => await SendAsync<T>(_post, uri, o: o);
-
-        public async Task<T> PUTAsync<T>(Uri uri, object o) 
-            => await SendAsync<T>(_put, uri, o: o);
-
-        public async Task PUTAsync(Uri uri, object o) 
-            => await SendAsync<string>(_put, uri, o: o);
-
-        public async Task<T> GETAsync<T>(Uri uri) 
-            => await SendAsync<T>(_get, uri);
-
-        public async Task<T> DELETEAsync<T>(Uri uri)
-            => await SendAsync<T>(_delete, uri);
-
-        public async Task DELETEAsync(Uri uri) 
-            => await SendAsync<string>(_delete, uri);
-
-        #endregion
-
-        #region Auth
-
-        public async Task RefreshTokenAsync()
-        {
-            if (string.IsNullOrEmpty(_clientId) 
-                || string.IsNullOrEmpty(_clientSecret)
-                || Token == null
-                || Token.Expires == null) return;
-            if (Token.Expires.Value <= DateTime.Now)
-                if(string.IsNullOrEmpty(Token.RefreshToken))
-                    await AuthAsync(_clientId, _clientSecret);
-                else
-                    await AuthAsync(_clientId, _clientSecret, Token.RefreshToken);
-        }
-
-        private async Task<StoryToken> AuthAsync(Dictionary<string, string> form)
-        {
-            StoryToken token = new StoryToken();
-            using (var handler = new HttpClientHandler() { AllowAutoRedirect = false })
-            using (var client = new HttpClient(handler))
-            {
-                client.DefaultRequestHeaders.Accept.Clear();
-                HttpResponseMessage response = await client.PostAsync(AuthEndpoint + "/connect/token", new FormUrlEncodedContent(form));
-                var result = await response.Content.ReadAsStringAsync();
-                if (!(response.StatusCode != HttpStatusCode.Created
-                    || response.StatusCode != HttpStatusCode.OK)) throw new InvalidOperationException(result);
-                if (response.StatusCode == System.Net.HttpStatusCode.BadRequest) throw new Exception(JObject.Parse(result)["error"].ToString());
-                JObject t = JObject.Parse(result);
-                JToken accessToken = t["access_token"];
-                if(accessToken != null) token.AccessToken = accessToken.Value<string>();
-                JToken expiresIn = t["expires_in"];
-                if (expiresIn != null) token.Expires = DateTime.Now + TimeSpan.FromSeconds(expiresIn.Value<int>());
-                JToken tokenType = t["token_type"];
-                if (tokenType != null) token.TokenType = tokenType.Value<string>();
-                JToken refreshToken = t["refresh_token"];
-                if (refreshToken != null) token.RefreshToken = refreshToken.Value<string>();
-            }
-            return Token = token;
-        }
-
-        public async Task<StoryToken> AuthAsync(string clientId, string secret, string username = null, string password = null)
-        {
-            bool pc = !(string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password)); 
-            var values = new Dictionary<string, string>()
+                if (token.IsCancellationRequested) return;
+                await t.Value.OnExecuting(new HttpPiplineRequest
                 {
-                    { "grant_type", pc ? "password" : "client_credentials"},
-                    { "client_id", clientId},
-                    { "client_secret", secret},
-                };
-            if (pc)
-            {
-                values["username"] = username;
-                values["password"] = password;
+                    CancellationToken = token,
+                    Command = command,
+                    Executor = this,
+                    Parameters = parameters,
+                    Request = request
+                }).ConfigureAwait(false);
             }
-            _clientId = clientId;
-            _clientSecret = secret;
-            return await AuthAsync(values);
         }
 
-        public async Task<StoryToken> AuthAsync(string clientId, string secret, string refreshToken)
+        async Task HttpResponsePipeline(IHttpCommand command, HttpResponseMessage response, IDictionary<string, object> parameters, CancellationToken token)
         {
-            var values = new Dictionary<string, string>()
+            if (_httpDecorators == null
+                || _httpDecorators.Count() == 0
+                || response == null) return;
+
+            foreach (var t in _httpDecorators)
+            {
+                if (token.IsCancellationRequested) return;
+                await t.Value.OnExecuted(new HttpPiplineResponse
                 {
-                    { "grant_type", "refresh_token"},
-                    { "client_id", clientId},
-                    { "client_secret", secret},
-                    { "refresh_token", refreshToken},
-                };
-            _clientId = clientId;
-            _clientSecret = secret;
-            return await AuthAsync(values);
+                    CancellationToken = token,
+                    Command = command,
+                    Executor = this,
+                    Parameters = parameters,
+                    Response = response
+                }).ConfigureAwait(false);
+            }
         }
+
+        IDictionary<Type, IHttpPiplineDecorator> _httpDecorators = new Dictionary<Type, IHttpPiplineDecorator>();
+
+        public void AddHttpDecorator<T>(T decorator) where T : class, IHttpPiplineDecorator =>
+            _httpDecorators[decorator.GetType()] = decorator;
+
+        public T GetHttpDecorator<T>() where T : class, IHttpPiplineDecorator
+        {
+            if (!_httpDecorators.ContainsKey(typeof(T))) return default(T);
+            return _httpDecorators[typeof(T)] as T;
+        }
+
+        public void RemoveHttpDecoratot<T>() where T : class, IHttpPiplineDecorator
+        {
+            if (!_httpDecorators.ContainsKey(typeof(T))) return;
+            _httpDecorators.Remove(typeof(T));
+        }
+        
+        #endregion
+
+            #region CRUD
+
+        /// <summary>
+        /// Список исключений при которых необходимо повторно выполнить команду.
+        /// </summary>
+        List<Type> exceptionsForPetry = new List<Type>() {
+                    typeof(HttpRequestException),
+                    typeof(TimeoutException),
+                    typeof(IOException),
+                    typeof(EndOfStreamException),
+                    typeof(InvalidDataException),
+                    typeof(InvalidOperationException),
+                    typeof(OperationCanceledException),
+                    typeof(TaskCanceledException)
+                };
+
+        bool AllowableHttErrorCodesForRetry(Exception ex, IEnumerable<int> codes)
+        {
+            if (ex == null) return false;
+            if (exceptionsForPetry.Any(t => ex.GetType() == t)) return true;
+
+            HttpCommandException commandException = ex as HttpCommandException;
+            if (commandException == null 
+                || codes == null 
+                || codes.Count() == 0) return false;
+
+            return codes.Any(t => t == commandException.Code);
+        }
+
+        IRetryPolicy CommandPolicy => 
+            new BackendRetryPolicy()
+            {
+                Predicate = (ex) => AllowableHttErrorCodesForRetry(ex, new int[]
+                {
+                    502,
+                    503,
+                    504,
+                    509,
+                    520,
+                    521
+                })
+            };
+
+        IRetryPolicy QueryPolicy =>
+           new BackendRetryPolicy()
+           {
+               Predicate = (ex) => AllowableHttErrorCodesForRetry(ex, new int[]
+               {
+                    500,
+                    502,
+                    503,
+                    504,
+                    509,
+                    520,
+                    521
+               })
+           };
+
+
+        async Task<T> BackendCommand<T>(string method, Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        {
+            using (BackendCommand<T> command = new BackendCommand<T>(method, uri))
+            {
+                command.Data = o;
+                await ExecuteHttpCommand(command, retryPolicy ?? CommandPolicy, cancellationToken, _logger);
+                if (command.Exception != null) throw command.Exception;
+                return command.Result;
+            }
+        }
+
+        public async Task<T> POSTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+            => await BackendCommand<T>(_post, uri, o, cancellationToken, retryPolicy);
+
+        public async Task<T> PUTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+            => await BackendCommand<T>(_put, uri, o, cancellationToken, retryPolicy);
+
+        public async Task<T> PATCHAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+            => await BackendCommand<T>(_patch, uri, o, cancellationToken, retryPolicy);
+
+        public async Task<T> GETAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+            => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy);
+
+        public async Task<T> DELETEAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+            => await BackendCommand<T>(_delete, uri, null, cancellationToken, retryPolicy);
 
         #endregion
+
 
     }
 }
