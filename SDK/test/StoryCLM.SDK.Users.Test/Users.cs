@@ -1,9 +1,7 @@
 ﻿using Shared;
+using StoryCLM.SDK.Authentication;
 using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 
 namespace StoryCLM.SDK.Users.Test
@@ -62,14 +60,14 @@ namespace StoryCLM.SDK.Users.Test
         }
 
         [Theory]
-        [InlineData(0, "test@test.com", "1234", "client_18_4", "")]
-        public async void Login(int uc, string username, string password, string clientId, string secret)
+        [InlineData(0, "test@test.com")]
+        public async void Login(int uc, string username)
         {
             SCLM sclm = await Utilities.GetContextAsync(uc);
             var user = await sclm.UserExistsAsync(username);
 
             SCLM s = new SCLM();
-            await s.AuthAsync(clientId, secret, username, password);
+            await s.AuthAsync(Settings.UserClientId, Settings.UserSecret, username, Settings.Password);
         }
 
         [Theory]

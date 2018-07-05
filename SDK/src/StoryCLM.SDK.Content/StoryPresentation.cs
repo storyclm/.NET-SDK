@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Content
@@ -13,46 +14,46 @@ namespace StoryCLM.SDK.Content
         internal StoryPresentation() { }
 
         Uri GetUri(string query) =>
-            new Uri($"{_sclm.Endpoint}/{ContentExtensions.Version}/{ContentExtensions.PathPresentations}/{query}", UriKind.Absolute);
+            new Uri($"{_sclm.GetEndpoint("api")}{ContentExtensions.Version}/{ContentExtensions.PathPresentations}/{query}", UriKind.Absolute);
 
         public async Task<IEnumerable<StorySimpleUserForPresentation>> AddUsersAsync(IEnumerable<string> ids)
         {
-            var users = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), ids);
+            var users = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), ids, CancellationToken.None);
             Users = users;
             return users;
         }
 
         public async Task<IEnumerable<StorySimpleUserForPresentation>> RemoveUsersAsync(IEnumerable<string> ids)
         {
-            var users = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users" + ids.ToIdsQueryArray()));
+            var users = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users" + ids.ToIdsQueryArray()), CancellationToken.None);
             Users = users;
             return users;
         }
 
         public async Task<IEnumerable<StorySimpleUserForPresentation>> SynchronizeUsersAsync(IEnumerable<string> ids)
         {
-            var users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), ids);
+            var users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), ids, CancellationToken.None);
             Users = users;
             return users;
         }
 
         public async Task<IEnumerable<StorySimpleUserForPresentation>> AddUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
         {
-            var result = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), users.Select(t => t.Id));
+            var result = await _sclm.POSTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), users.Select(t => t.Id), CancellationToken.None);
             Users = result;
             return result;
         }
 
         public async Task<IEnumerable<StorySimpleUserForPresentation>> RemoveUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
         {
-            var result = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users" + users.Select(t => t.Id).ToIdsQueryArray()));
+            var result = await _sclm.DELETEAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users" + users.Select(t => t.Id).ToIdsQueryArray()), CancellationToken.None);
             Users = result;
             return result;
         }
 
         private async Task SynchronizeUsersAsync(IEnumerable<StorySimpleUserForPresentation> users)
         {
-            Users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), users.Select(t => t.Id));
+            Users = await _sclm.PUTAsync<IEnumerable<StorySimpleUserForPresentation>>(GetUri(Id + "/users/"), users.Select(t => t.Id), CancellationToken.None);
         }
 
         public async Task RemoveAllUsersAsync() =>

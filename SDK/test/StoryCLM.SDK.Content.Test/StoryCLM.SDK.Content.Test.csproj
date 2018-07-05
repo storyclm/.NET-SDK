@@ -14,6 +14,8 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\StoryCLM.SDK.Content\StoryCLM.SDK.Content.csproj" />
+    <ProjectReference Include="..\..\src\StoryCLM.SDK.Users\StoryCLM.SDK.Users.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK\StoryCLM.SDK.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
   </ItemGroup>

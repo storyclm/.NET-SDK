@@ -1,19 +1,16 @@
 ﻿using Shared;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Xunit;
 using SroryCLM.SDK.CLMAnalitycs;
+using System;
+using System.Linq;
+using Xunit;
 
 namespace StoryCLM.SDK.CLMAnalitycs.Test
 {
     public class CLMAnalitycs
     {
 
-        DateTime _start = new DateTime(2017, 1, 1, 0, 0, 0);
-        DateTime _finish = new DateTime(2018, 6, 1, 0, 0, 0);
+        DateTime _start = new DateTime(2016, 1, 1, 0, 0, 0);
+        DateTime _finish = new DateTime(2018, 7, 1, 0, 0, 0);
         string[] usersIds = { "31e806b7-56b2-4560-ad39-2fa1a382a9d2", "d0532be9-d6d8-4401-8155-01e309f87aa7", "b2b68ca3-4e7b-4e36-b29e-dbcc06585065" };
         string[] usersId = { "31e806b7-56b2-4560-ad39-2fa1a382a9d2" };
         int[] presIds = { 4991, 5358 };
@@ -28,16 +25,7 @@ namespace StoryCLM.SDK.CLMAnalitycs.Test
             var sessions = await sclm.GetSessionsAsync();
             Assert.True(sessions.Count() > 0);
 
-            sessions = await sclm.GetSessionsAsync(_start, _finish, presIds, usersIds, 0, 1000);
-            Assert.True(sessions.Count() > 0);
-
             sessions = await sclm.GetSessionsAsync(_start, _finish, presIds);
-            Assert.True(sessions.Count() > 0);
-
-            sessions = await sclm.GetSessionsAsync(_start, _finish, usersIds: usersIds);
-            Assert.True(sessions.Count() > 0);
-
-            sessions = await sclm.GetSessionsAsync(usersIds: usersIds);
             Assert.True(sessions.Count() > 0);
 
             sessions = await sclm.GetSessionsAsync(_start, usersIds: usersIds);
@@ -53,6 +41,15 @@ namespace StoryCLM.SDK.CLMAnalitycs.Test
             Assert.True(sessions.Count() > 0);
 
             sessions = await sclm.GetSessionsAsync(finish: _finish, presentationsIds: presIds);
+            Assert.True(sessions.Count() > 0);
+
+            sessions = await sclm.GetSessionsAsync(_start, _finish, usersIds: usersIds);
+            Assert.True(sessions.Count() > 0);
+
+            sessions = await sclm.GetSessionsAsync(usersIds: usersIds);
+            Assert.True(sessions.Count() > 0);
+
+            sessions = await sclm.GetSessionsAsync(_start, _finish, presIds, usersIds, 0, 1000);
             Assert.True(sessions.Count() > 0);
 
             sessions = await sclm.GetSessionsAsync(presentationsIds: presIds);
