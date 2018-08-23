@@ -1,12 +1,10 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace StoryCLM.SDK
+namespace SroryCLM.SDK.Common.Retry
 {
-    public class BackendRetryPolicy : IRetryPolicy
+    public class RetryPolicy : IRetryPolicy
     {
-        public virtual int RetriesCount { get; set; } = 15;
+        public virtual int RetriesCount { get; set; } = 10;
 
         public virtual TimeSpan Interval { get; set; } = TimeSpan.FromMilliseconds(50);
 

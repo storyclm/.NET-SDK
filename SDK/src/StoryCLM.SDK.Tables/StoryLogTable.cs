@@ -6,6 +6,13 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.Tables
 {
+    public enum TableLogOperation
+    {
+        Insert = 0,
+        Update = 1,
+        Delete = 2
+    }
+
     /// <summary>
     /// Запись в логе таблицы
     /// </summary>
@@ -19,19 +26,24 @@ namespace StoryCLM.SDK.Tables
         /// <summary>
         /// Идендификатор сущности в таблице
         /// </summary>
-        public object TableEntityId { get; set; }
+        public object EntityId { get; set; }
+
+        /// <summary>
+        /// Внешний ключ
+        /// </summary>
+        public object ForeignKey { get; set; }
+
+
+        public object BlobId { get; set; }
 
         /// <summary>
         /// Дата выполненой операции
         /// </summary>
         public DateTime Created { get; set; }
 
-        /// <summary>
-        /// Тип выполненной операции
-        /// 0 - insert
-        /// 1 - update
-        /// 2 - delete
-        /// </summary>
-        public int OperationType { get; set; }
+
+        public TableLogOperation OperationType { get; set; }
+
+
     }
 }

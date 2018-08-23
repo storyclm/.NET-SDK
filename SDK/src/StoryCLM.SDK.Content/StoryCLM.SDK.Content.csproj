@@ -1,11 +1,11 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
-    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.3.0</AssemblyVersion>
+    <FileVersion>2.1.3.0</FileVersion>
+    <Version>2.1.3</Version>
     <Authors>Breffi LLC</Authors>
     <Product>StoryCLM</Product>
     <Description>StoryCLM — a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
@@ -15,11 +15,12 @@
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/17642277</PackageIconUrl>
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <PackageTags>StoryCLM</PackageTags>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StoryCLM.SDK" Version="2.3.2" />
-    <PackageReference Include="StoryCLM.SDK.Users" Version="2.1.0" />
+    <PackageReference Include="StoryCLM.SDK" Version="2.3.4" />
+    <PackageReference Include="StoryCLM.SDK.Users" Version="2.1.1" />
   </ItemGroup>
 
 </Project>

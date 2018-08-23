@@ -8,11 +8,8 @@ namespace StoryCLM.SDK.Users
 {
    public class StoryUserItem: StorySimpleUser
     {
-        internal SCLM _sclm;
-
         internal StoryUserItem() { }
 
         public string Username { get; set; }
-
     }
 }

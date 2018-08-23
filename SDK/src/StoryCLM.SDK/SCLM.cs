@@ -1,17 +1,19 @@
 ﻿/*!
-* StoryCLM.SDK Library v2.3.0
+* StoryCLM.SDK Library v2.3.5
 * Copyright(c) 2018, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
-using StoryCLM.SDK.Models;
+using SroryCLM.SDK.Common.Retry;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel;
 using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.NetworkInformation;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -41,7 +43,7 @@ namespace StoryCLM.SDK
                 UseCookies = false,
             });
             _httpClient.DefaultRequestHeaders.Clear();
-            _httpClient.DefaultRequestHeaders.ConnectionClose = true;
+            _httpClient.DefaultRequestHeaders.ConnectionClose = false;
         }
 
         public SCLM(ILogger logger = null)
@@ -52,28 +54,17 @@ namespace StoryCLM.SDK
             _logger = logger;
         }
 
-        /// <summary>
-        /// Выполняет команду.
-        /// </summary>
-        /// <param name="command"></param>
-        /// <param name="retryPolicy"></param>
-        /// <param name="cancellationToken"></param>
-        /// <param name="logger"></param>
-        /// <returns></returns>
         public virtual async Task ExecuteHttpCommand(IHttpCommand command,
-            IRetryPolicy retryPolicy,
-            CancellationToken cancellationToken,
+            IRetryPolicy retryPolicy = null,
+            CancellationToken cancellationToken = default(CancellationToken),
             ILogger logger = null)
         {
-            using (CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
+            if (command == null) return;
+            async Task action()
             {
-                if (command == null) return;
-                bool retry = retryPolicy == null ? false : retryPolicy.RetriesCount > 0;
-                TimeSpan retryInterval = retryPolicy?.Interval ?? TimeSpan.Zero;
-                int retryCount = 1;
-                do
+                try
                 {
-                    try
+                    using (CancellationTokenSource cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken))
                     {
                         DateTime now = DateTime.Now;
                         try // ловим таймаут
@@ -93,6 +84,7 @@ namespace StoryCLM.SDK
                             if (cancellationTokenSource.Token.IsCancellationRequested) throw new OperationCanceledException(cancellationToken);
                             //пропускаем ответ через обработчик команды
                             await command.OnExecuted(response, cancellationTokenSource.Token).ConfigureAwait(false);
+                            command.Exception = null;
                             return;
                         }
                         catch (Exception ex) //таймаут
@@ -105,35 +97,22 @@ namespace StoryCLM.SDK
                             throw;
                         }
                     }
-                    catch (Exception ex)
-                    {
-                        command.Exception = ex;
-                        //обрабатываем повтор.
-                        if (!retry
-                            || retryPolicy == null
-                            || retryCount >= retryPolicy.RetriesCount) throw;
-
-                        //необходим ли повтор (повтор по условию).
-                        if (retryPolicy.Predicate != null)
-                            if (!retryPolicy.Predicate(command.Exception)) throw;
-
-                        //задержка между повторами
-                        if (retryInterval > TimeSpan.Zero) // без задержки или с задержкой
-                        {
-                            if (retryPolicy.ExponentialBackoff) // экспоненциальная задержка
-                            {
-                                var pow = Math.Pow(2, retryCount - 1);
-                                int delay = (int)(retryInterval.TotalMilliseconds * (pow - 1) / 2);
-                                await Task.Delay(delay, cancellationTokenSource.Token).ConfigureAwait(false);
-                            }
-                            else
-                                await Task.Delay((int)retryInterval.TotalMilliseconds * retryCount, cancellationTokenSource.Token).ConfigureAwait(false); // линейная задержка
-                        }
-
-                        retryCount++;
-                    }
                 }
-                while (retry);
+                catch (Exception ex)
+                {
+                    command.Exception = ex;
+                    throw;
+                }
+            }
+
+            if (retryPolicy == null)
+            {
+                await action();
+            }
+            else
+            {
+                IRetry retry = new Retry();
+                await retry.Execute(action, retryPolicy, cancellationToken);
             }
         }
 
@@ -235,81 +214,83 @@ namespace StoryCLM.SDK
             if (!_httpDecorators.ContainsKey(typeof(T))) return;
             _httpDecorators.Remove(typeof(T));
         }
-        
+
         #endregion
 
         #region CRUD
 
         /// <summary>
-        /// Список исключений при которых необходимо повторно выполнить команду.
+        /// Список исключений при которых необходимо повторно выполнить код.
         /// </summary>
-        List<Type> exceptionsForPetry = new List<Type>() {
-                    typeof(HttpRequestException),
-                    typeof(TimeoutException),
-                    typeof(IOException),
-                    typeof(EndOfStreamException),
-                    typeof(InvalidDataException),
-                    typeof(InvalidOperationException),
-                    typeof(TaskCanceledException)
-                };
+        public static List<Type> Exceptions { get; } = new List<Type>()
+        {
+            typeof(IOException),
+            typeof(SocketException),
+            typeof(HttpRequestException),
+            typeof(TimeoutException),
+            typeof(EndOfStreamException),
+            typeof(InvalidDataException),
+            typeof(InvalidOperationException),
+            typeof(TaskCanceledException),
+            typeof(WarningException),
+            typeof(HttpListenerException),
+            typeof(ProtocolViolationException),
+            typeof(WebException),
+            typeof(PingException),
+            typeof(NetworkInformationException)
+        };
 
+        /// <summary>
+        /// Список Http кодов при получении который необходимо выполнить повтор.
+        /// </summary>
+        public static List<int> HttpsCodes { get; } = new List<int>()
+        {
+            502,
+            503,
+            504,
+            509,
+            520,
+            521
+        };
 
-        bool AllowableHttErrorCodesForRetry(Exception ex, IEnumerable<int> codes)
+        static bool HttpPredicate(Exception ex, IEnumerable<int> codes)
         {
             if (ex == null) return false;
-            if (exceptionsForPetry.Any(t => ex.GetType() == t)) return true;
+            if (Exceptions.Any(t => ex.GetType() == t)) return true;
 
             HttpCommandException commandException = ex as HttpCommandException;
-            if (commandException == null 
-                || codes == null 
+            if (commandException == null
+                || codes == null
                 || codes.Count() == 0) return false;
 
             return codes.Any(t => t == commandException.Code);
         }
 
-        IRetryPolicy CommandPolicy => 
-            new BackendRetryPolicy()
+        public IRetryPolicy HttpCommandPolicy =>
+             new RetryPolicy()
+             {
+                 Predicate = (ex) => HttpPredicate(ex, HttpsCodes)
+             };
+
+        public IRetryPolicy HttpQueryPolicy =>
+            new RetryPolicy()
             {
-                Predicate = (ex) => AllowableHttErrorCodesForRetry(ex, new int[]
-                {
-                    502,
-                    503,
-                    504,
-                    509,
-                    520,
-                    521
-                })
+                Predicate = (ex) => HttpPredicate(ex, new List<int>(HttpsCodes) { 500 })
             };
-
-        IRetryPolicy QueryPolicy =>
-           new BackendRetryPolicy()
-           {
-               Predicate = (ex) => AllowableHttErrorCodesForRetry(ex, new int[]
-               {
-                    500,
-                    502,
-                    503,
-                    504,
-                    509,
-                    520,
-                    521
-               })
-           };
-
 
         async Task<T> BackendCommand<T>(string method, Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
         {
             using (BackendCommand<T> command = new BackendCommand<T>(method, uri))
             {
                 command.Data = o;
-                await ExecuteHttpCommand(command, retryPolicy ?? CommandPolicy, cancellationToken, _logger);
+                await ExecuteHttpCommand(command, retryPolicy ?? HttpQueryPolicy, cancellationToken, _logger);
                 if (command.Exception != null) throw command.Exception;
                 return command.Result;
             }
         }
 
         public async Task<T> POSTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
-            => await BackendCommand<T>(_post, uri, o, cancellationToken, retryPolicy);
+            => await BackendCommand<T>(_post, uri, o, cancellationToken, retryPolicy ?? HttpCommandPolicy);
 
         public async Task<T> PUTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_put, uri, o, cancellationToken, retryPolicy);
@@ -318,13 +299,11 @@ namespace StoryCLM.SDK
             => await BackendCommand<T>(_patch, uri, o, cancellationToken, retryPolicy);
 
         public async Task<T> GETAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
-            => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy ?? QueryPolicy);
+            => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy);
 
         public async Task<T> DELETEAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_delete, uri, null, cancellationToken, retryPolicy);
 
         #endregion
-
-
     }
 }

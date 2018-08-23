@@ -17,7 +17,7 @@ namespace StoryCLM.SDK.Users
         /// </summary>
         public int Role { get; set; }
 
-        public SCLM Context  { get; private set;}
+        public SCLM Context  { get; internal set;}
 
         public async Task<StoryUser> LoadAsync() =>
             await Context.GetUserAsync(Id);

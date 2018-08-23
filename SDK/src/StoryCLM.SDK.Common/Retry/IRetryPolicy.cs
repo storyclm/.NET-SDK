@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StoryCLM.SDK
+namespace SroryCLM.SDK.Common.Retry
 {
     /// <summary>
     /// Устанавливает политику повторов выполнения команды в случае возникновения исключения.

@@ -1,4 +1,5 @@
 ﻿using Shared;
+using SroryCLM.SDK.Common.Retry;
 using StoryCLM.SDK.Authentication;
 using System;
 using System.Collections.Generic;
@@ -53,13 +54,32 @@ namespace StoryCLM.SDK.Test
                 Uri = new Uri($"{sclm.GetEndpoint("api")}v1/users/"),
                 Method = "GET",
             };
-            await sclm.ExecuteHttpCommand(retryCommand, new BackendRetryPolicy()
+            await sclm.ExecuteHttpCommand(retryCommand, new SroryCLM.SDK.Common.Retry.RetryPolicy()
             {
                 ExponentialBackoff = true,
                 Interval = TimeSpan.FromMilliseconds(50),
                 RetriesCount = 10
             }, CancellationToken.None);
-            Assert.Null(retryCommand.Exception);
+            Assert.NotNull(retryCommand.Exception);
+        }
+
+        [Fact]
+        public async Task RetryLinar()
+        {
+            SCLM sclm = new SCLM();
+            await sclm.AuthAsync(Settings.ServiceClientId, Settings.ServiceSecret);
+            var retryCommand = new RetryCommand(new TimeoutException())
+            {
+                Uri = new Uri($"{sclm.GetEndpoint("api")}v1/users/"),
+                Method = "GET",
+            };
+            await sclm.ExecuteHttpCommand(retryCommand, new SroryCLM.SDK.Common.Retry.RetryPolicy()
+            {
+                ExponentialBackoff = false,
+                Interval = TimeSpan.FromMilliseconds(50),
+                RetriesCount = 10
+            }, CancellationToken.None);
+            Assert.NotNull(retryCommand.Exception);
         }
 
     }

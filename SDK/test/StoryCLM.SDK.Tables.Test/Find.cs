@@ -25,6 +25,24 @@ namespace StoryCLM.SDK.Tables.Test
 
         [Theory]
         [InlineData(0)]
+        public async void FindByIdRetryPolice(int uc)
+        {
+            SCLM sclm = await Utilities.GetContextAsync(uc);
+            var storyTable = await Tables.GetTableAsync(sclm);
+
+            try
+            {
+                var profile = await storyTable.FindAsync("ADB902E5C84643AAA6EC7EC4A20934E4");
+                Assert.True(false);
+            }
+            catch (Exception ex)
+            {
+
+            }
+        }
+
+        [Theory]
+        [InlineData(0)]
         public async void FindByIds(int uc)
         {
             SCLM sclm = await Utilities.GetContextAsync(uc);

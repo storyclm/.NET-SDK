@@ -1,7 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>netstandard1.3</TargetFramework>
+    <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Breffi LLC</Authors>
     <Company>Breffi LLC</Company>
     <Product>StoryCLM</Product>
@@ -12,14 +12,15 @@
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/17642277</PackageIconUrl>
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <PackageTags>StoryCLM</PackageTags>
-    <AssemblyVersion>2.1.0.0</AssemblyVersion>
-    <FileVersion>2.1.0.0</FileVersion>
-    <Version>2.1.0</Version>
+    <AssemblyVersion>2.1.5.0</AssemblyVersion>
+    <FileVersion>2.1.5.0</FileVersion>
+    <Version>2.1.5</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StoryCLM.SDK" Version="2.3.2" />
+    <PackageReference Include="StoryCLM.SDK" Version="2.3.6" />
   </ItemGroup>
 
 </Project>

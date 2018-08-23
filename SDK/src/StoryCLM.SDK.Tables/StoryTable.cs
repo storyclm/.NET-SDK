@@ -72,8 +72,18 @@ namespace StoryCLM.SDK.Tables
         /// <param name="tableId">Идентификатор таблицы</param>
         /// <param name="id">Идентификатор записи</param>
         /// <returns></returns>
-        public async Task<T> FindAsync(string id) =>
-            await _sclm.GETAsync<T>(GetUri(Id + "/findbyid/" + id), CancellationToken.None);
+        public async Task<T> FindAsync(string id)
+        {
+            try
+            {
+               return await _sclm.GETAsync<T>(GetUri(Id + "/findbyid/" + id), CancellationToken.None);
+            }
+            catch(HttpCommandException ex)
+            {
+                if (ex.Code == 404) return null;
+                throw;
+            }
+        }
 
         /// <summary>
         /// Таблицы.

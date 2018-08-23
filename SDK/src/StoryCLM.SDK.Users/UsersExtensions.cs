@@ -35,10 +35,18 @@ namespace StoryCLM.SDK.Users
             return user;
         }
 
+        public static async Task<StoryUser> GetUserAsync(this SCLM sclm, StoryUserItem user)
+        {
+            if (user == null) throw new ArgumentNullException(nameof(user));
+            StoryUser u = await sclm.GETAsync<StoryUser>(new Uri($"{sclm.GetEndpoint(api)}/{Version}/{Path}/{user.Id}", UriKind.Absolute), CancellationToken.None);
+            u.Context = sclm;
+            return u;
+        }
+
         public static async Task<IEnumerable<StoryUserItem>> GetUsersAsync(this SCLM sclm)
         {
             var users = await sclm.GETAsync<IEnumerable<StoryUserItem>>(new Uri($"{sclm.GetEndpoint(api)}/{Version}/{Path}", UriKind.Absolute), CancellationToken.None);
-            foreach (var t in users) t._sclm = sclm;
+            foreach (var t in users) t.Context = sclm;
             return users;
         }
     }
