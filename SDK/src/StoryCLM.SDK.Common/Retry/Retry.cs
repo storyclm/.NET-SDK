@@ -1,6 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -56,5 +54,20 @@ namespace SroryCLM.SDK.Common.Retry
                 while (retry);
             }
         }
+
+        public async Task<T> Execute<T>(Func<Task<T>> action,
+            IRetryPolicy retryPolicy,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            if (action == null) throw new ArgumentNullException(nameof(action));
+            if (retryPolicy == null) throw new ArgumentNullException(nameof(retryPolicy));
+            T result = default(T);
+            await Execute(async () => 
+            {
+                result = await action();
+            }, retryPolicy, cancellationToken);
+            return result;
+        }
+
     }
 }

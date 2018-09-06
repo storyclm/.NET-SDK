@@ -34,11 +34,11 @@ namespace StoryCLM.SDK.Tables.Test
 
             List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
             Assert.NotNull(profiles);
-            Assert.True(profiles.Count() == 3);
+            Assert.True(profiles.Count() == 308);
 
             List<Profile> updatedProfiles = new List<Profile>(await storyTable.UpdateAsync(Profile.UpdateProfiles(profiles)));
             Assert.NotNull(updatedProfiles);
-            Assert.True(updatedProfiles.Count() == 3);
+            Assert.True(updatedProfiles.Count() == 308);
         }
     }
 }

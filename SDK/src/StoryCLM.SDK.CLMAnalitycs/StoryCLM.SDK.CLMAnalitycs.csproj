@@ -17,7 +17,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StoryCLM.SDK" Version="2.3.6" />
+    <PackageReference Include="StoryCLM.SDK" Version="2.3.8" />
   </ItemGroup>
 
 </Project>

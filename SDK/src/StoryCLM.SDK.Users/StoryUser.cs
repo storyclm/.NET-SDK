@@ -11,7 +11,10 @@ namespace StoryCLM.SDK.Users
     {
         public SCLM Context { get; set; }
 
-        public StoryUser() { }
+        public StoryUser()
+        {
+            Groups = Enumerable.Empty<StorySimpleUserItem>();
+        }
 
         Uri GetUri(string query = null) =>
             new Uri($"{Context.GetEndpoint("api")}{UsersExtensions.Version}/{UsersExtensions.Path}/{query}", UriKind.Absolute);
@@ -32,35 +35,54 @@ namespace StoryCLM.SDK.Users
 
         public bool? Gender { get; set; }
 
-        public async Task SaveAsync() =>
-            await Context.PUTAsync<StoryUser>(GetUri(), this, CancellationToken.None);
+        public IEnumerable<StorySimpleUserItem> Groups { get; set; }
 
-        public async Task ChangePasswordAsync(string password) =>
-           await Context.PUTAsync<Object>(GetUri(Id + "/password"), new StoryPassword { Password = password }, CancellationToken.None);
+        public IEnumerable<StorySimpleUserItem> Presentations { get; set; }
 
-        public async Task AddToGroupAsync(int groupId) =>
-            await Context.PUTAsync<Object>(GetUri(Id + "/group/" + groupId), null, CancellationToken.None);
+        public async Task SaveAsync(CancellationToken token = default(CancellationToken)) =>
+            await Context.PUTAsync<StoryUser>(GetUri(), this, token);
 
-        public async Task RemoveFromGroupAsync(int groupId) =>
-            await Context.DELETEAsync<Object>(GetUri(Id + "/group/" + groupId), CancellationToken.None);
+        public async Task ChangePasswordAsync(string password, CancellationToken token = default(CancellationToken)) =>
+           await Context.PUTAsync<Object>(GetUri(Id + "/password"), new StoryPassword { Password = password }, token);
 
-        public async Task AddPresentationAsync(int presentationId) =>
-            await Context.PUTAsync<Object>(GetUri(Id + "/presentation/" + presentationId), null, CancellationToken.None);
+        public async Task AddToGroupAsync(int groupId, CancellationToken token = default(CancellationToken)) =>
+            await Context.PUTAsync<Object>(GetUri(Id + "/group/" + groupId), null, token);
 
-        public async Task<IEnumerable<int>> AddPresentationsAsync(IEnumerable<int> ids) =>
-            await Context.POSTAsync<IEnumerable<int>>(GetUri(Id + "/presentations"), ids, CancellationToken.None);
+        public async Task RemoveFromGroupAsync(int groupId, CancellationToken token = default(CancellationToken)) =>
+            await Context.DELETEAsync<Object>(GetUri(Id + "/group/" + groupId), token);
 
-        public async Task<IEnumerable<int>> SyncPresentationsAsync(IEnumerable<int> ids) =>
-            await Context.PUTAsync<IEnumerable<int>>(GetUri(Id + "/presentations"), ids, CancellationToken.None);
+        public async Task AddPresentationAsync(int presentationId, CancellationToken token = default(CancellationToken)) =>
+            await Context.PUTAsync<Object>(GetUri(Id + "/presentation/" + presentationId), null, token);
 
-        public async Task RemoveFromPresentationAsync(int presentationId) =>
-            await Context.DELETEAsync<Object>(GetUri(Id + "/presentation/" + presentationId), CancellationToken.None);
+        public async Task<IEnumerable<int>> AddPresentationsAsync(IEnumerable<int> ids, CancellationToken token = default(CancellationToken)) =>
+            await Context.POSTAsync<IEnumerable<int>>(GetUri(Id + "/presentations"), ids, token);
 
-        public async Task<IEnumerable<StorySimpleUserItem>> GetPresentations() =>
-            await Context.GETAsync<IEnumerable<StorySimpleUserItem>>(GetUri(Id + "/presentations"), CancellationToken.None);
+        public async Task<IEnumerable<int>> SyncPresentationsAsync(IEnumerable<int> ids, CancellationToken token = default(CancellationToken)) =>
+            await Context.PUTAsync<IEnumerable<int>>(GetUri(Id + "/presentations"), ids, token);
 
-        public async Task<IEnumerable<StorySimpleUserItem>> GetGroups() =>
-            await Context.GETAsync<IEnumerable<StorySimpleUserItem>>(GetUri(Id + "/groups"), CancellationToken.None);
+        public async Task RemoveFromPresentationAsync(int presentationId, CancellationToken token = default(CancellationToken)) =>
+            await Context.DELETEAsync<Object>(GetUri(Id + "/presentation/" + presentationId), token);
+
+        /// <summary>
+        /// Загружает пользователей, в которым имеет доступ пользователь.
+        /// </summary>
+        /// <param name="token"></param>
+        /// <returns></returns>
+        public async Task<IEnumerable<StorySimpleUserItem>> LoadPresentations(CancellationToken token = default(CancellationToken))
+        {
+            Presentations = await Context.GETAsync<IEnumerable<StorySimpleUserItem>>(GetUri(Id + "/presentations"), token) ?? Enumerable.Empty<StorySimpleUserItem>();
+            return Presentations;
+        }
+
+        /// <summary>
+        /// Загружает группы, в которых состоит пользователь.
+        /// </summary>
+        /// <returns></returns>
+        public async Task<IEnumerable<StorySimpleUserItem>> LoadGroups(CancellationToken token = default(CancellationToken))
+        {
+            Groups = await Context.GETAsync<IEnumerable<StorySimpleUserItem>>(GetUri(Id + "/groups"), token) ?? Enumerable.Empty<StorySimpleUserItem>();
+            return Groups;
+        }
 
     }
 }

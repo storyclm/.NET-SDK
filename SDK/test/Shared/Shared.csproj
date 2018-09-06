@@ -12,7 +12,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\SroryCLM.SDK.Common\StoryCLM.SDK.Common.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK\StoryCLM.SDK.csproj" />
     <ProjectReference Include="..\..\StoryCLM.SDK.Authentication\StoryCLM.SDK.Authentication.csproj" />
   </ItemGroup>

@@ -47,12 +47,21 @@ namespace StoryCLM.SDK.Tables.Test
         {
             SCLM sclm = await Utilities.GetContextAsync(uc);
             var storyTable = await Tables.GetTableAsync(sclm);
-
             List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
-
             //Получить коллекцию записей по списку идентификаторов
             IEnumerable<Profile> results = await storyTable.FindAsync(profiles.Select(t => t._id).ToArray());
-            Assert.True(results.Count() > 0);
+            Assert.True(results.Count() == 308);
+        }
+
+        [Theory]
+        [InlineData(0)]
+        public async void Pull(int uc)
+        {
+            SCLM sclm = await Utilities.GetContextAsync(uc);
+            var storyTable = await Tables.GetTableAsync(sclm);
+            long count = await storyTable.CountAsync();
+            IEnumerable<Profile> results = await storyTable.PullAsync();
+            Assert.True(results.Count() == count);
         }
 
         [Theory]

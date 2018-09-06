@@ -1,5 +1,7 @@
-﻿using System;
+﻿using StoryCLM.SDK.Common.Pumper;
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -11,6 +13,21 @@ namespace StoryCLM.SDK.Tables
         public static string Version = "v1";
         public static string Path = @"tables";
         const string api = nameof(api);
+
+        public static async Task<IDictionary<int, IEnumerable<T>>> GetPages<T>(this IEnumerable<T> items, int pageSize = 50)
+        {
+            IDictionary<int, IEnumerable<T>> pages = new Dictionary<int, IEnumerable<T>>();
+            if (items == null || items.Count() == 0) return pages;
+            if (pageSize < 1) pageSize = 1;
+            int pageCount = 1;
+            await items.Pump(async (s) =>
+            {
+                pages[pageCount] = s;
+                pageCount++;
+                await Task.CompletedTask;
+            }, pageSize);
+            return pages;
+        }
 
         /// <summary>
         /// Получить все таблицы клиента.

@@ -104,7 +104,7 @@ namespace StoryCLM.SDK.Users.Test
             var user = await sclm.UserExistsAsync(username);
 
             await user.AddPresentationAsync(presentationId);
-            var ps = await user.GetPresentations();
+            var ps = await user.LoadPresentations();
             Assert.Contains(presentationId, ps.Select(t => t.Id));
         }
 
@@ -116,7 +116,7 @@ namespace StoryCLM.SDK.Users.Test
             var user = await sclm.UserExistsAsync(username);
 
             await user.RemoveFromPresentationAsync(presentationId);
-            var ps = await user.GetPresentations();
+            var ps = await user.LoadPresentations();
             Assert.DoesNotContain(presentationId, ps.Select(t => t.Id));
         }
 
@@ -128,8 +128,20 @@ namespace StoryCLM.SDK.Users.Test
             var user = await sclm.UserExistsAsync(username);
 
             await user.AddToGroupAsync(groupId);
-            var gs = await user.GetGroups();
+            var gs = await user.LoadGroups();
             Assert.Contains(groupId, gs.Select(t => t.Id));
+        }
+
+        [Theory]
+        [InlineData(0, "test@test.com", 87)]
+        public async void GetGroups(int uc, string username, int groupId)
+        {
+            SCLM sclm = await Utilities.GetContextAsync(uc);
+            var user = await sclm.UserExistsAsync(username);
+
+            await user.AddToGroupAsync(groupId);
+            await user.LoadGroups();
+            Assert.Contains(groupId, user.Groups.Select(t => t.Id));
         }
 
         [Theory]
@@ -140,7 +152,7 @@ namespace StoryCLM.SDK.Users.Test
             var user = await sclm.UserExistsAsync(username);
 
             await user.RemoveFromGroupAsync(groupId);
-            var gs = await user.GetGroups();
+            var gs = await user.LoadGroups();
             Assert.DoesNotContain(groupId, gs.Select(t => t.Id));
         }
 

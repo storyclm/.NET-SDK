@@ -49,7 +49,7 @@ namespace StoryCLM.SDK.Myosotis
                 command.Method = method;
                 command.Uri = uri;
                 command.Data = o;
-                await sclm.ExecuteHttpCommand(command, retryPolicy ?? new HttpRetryPolicy()
+                await sclm.ExecuteHttpCommand(command, retryPolicy ?? new RetryPolicy()
                 {
                     Predicate = (ex) => PetryPredicate(ex)
                 }, cancellationToken, null);

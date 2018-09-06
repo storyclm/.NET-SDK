@@ -11,6 +11,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\src\StoryCLM.SDK.Common\StoryCLM.SDK.Common.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK.IoT\StoryCLM.SDK.IoT.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK\StoryCLM.SDK.csproj" />
   </ItemGroup>

@@ -88,7 +88,7 @@ namespace StoryCLM.SDK.Tables.Test
         public static IEnumerable<Profile> CreateProfiles()
         {
             List<Profile> result = new List<Profile>();
-            for (int i = 0; i < 3; i++)
+            for (int i = 0; i < 308; i++)
                 result.Add(CreateProfile());
             return result;
         }

@@ -24,12 +24,15 @@ namespace StoryCLM.SDK
         const string _api = "api";
         const string _auth = "auth";
         const string _myo = "myo";
+        const string _iot = "iot";
 
         const string _post = "POST";
         const string _put = "PUT";
         const string _get = "GET";
         const string _delete = "DELETE";
         const string _patch = "PATCH";
+
+        const int _defaultConnectionLimit = 10;
 
         static readonly HttpClient _httpClient;
 
@@ -42,6 +45,7 @@ namespace StoryCLM.SDK
                 AllowAutoRedirect = false,
                 UseCookies = false,
             });
+            ServicePointManager.DefaultConnectionLimit = _defaultConnectionLimit;
             _httpClient.DefaultRequestHeaders.Clear();
             _httpClient.DefaultRequestHeaders.ConnectionClose = false;
         }
@@ -51,6 +55,7 @@ namespace StoryCLM.SDK
             SetEndpoint(_api, "https://api.storyclm.com");
             SetEndpoint(_auth, "https://auth.storyclm.com");
             SetEndpoint(_myo, "https://myosotis.storyclm.com");
+            SetEndpoint(_iot, "https://iot.storyclm.com");
             _logger = logger;
         }
 
@@ -245,6 +250,9 @@ namespace StoryCLM.SDK
         /// </summary>
         public static List<int> HttpsCodes { get; } = new List<int>()
         {
+            408,
+            417,
+            429,
             502,
             503,
             504,
@@ -289,19 +297,19 @@ namespace StoryCLM.SDK
             }
         }
 
-        public async Task<T> POSTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        public async Task<T> POSTAsync<T>(Uri uri, object o, CancellationToken cancellationToken = default(CancellationToken), IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_post, uri, o, cancellationToken, retryPolicy ?? HttpCommandPolicy);
 
-        public async Task<T> PUTAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        public async Task<T> PUTAsync<T>(Uri uri, object o, CancellationToken cancellationToken = default(CancellationToken), IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_put, uri, o, cancellationToken, retryPolicy);
 
-        public async Task<T> PATCHAsync<T>(Uri uri, object o, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        public async Task<T> PATCHAsync<T>(Uri uri, object o, CancellationToken cancellationToken = default(CancellationToken), IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_patch, uri, o, cancellationToken, retryPolicy);
 
-        public async Task<T> GETAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        public async Task<T> GETAsync<T>(Uri uri, CancellationToken cancellationToken = default(CancellationToken), IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_get, uri, null, cancellationToken, retryPolicy);
 
-        public async Task<T> DELETEAsync<T>(Uri uri, CancellationToken cancellationToken, IRetryPolicy retryPolicy = null) where T : class
+        public async Task<T> DELETEAsync<T>(Uri uri, CancellationToken cancellationToken = default(CancellationToken), IRetryPolicy retryPolicy = null) where T : class
             => await BackendCommand<T>(_delete, uri, null, cancellationToken, retryPolicy);
 
         #endregion

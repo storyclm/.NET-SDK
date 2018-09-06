@@ -9,7 +9,7 @@ namespace StoryCLM.SDK.IoT
 {
     public abstract class PublishBase : ResultCommand<Message>
     {
-        public PublishBase(string key, string secret, Stream data = null) : base(key, secret, data) { }
+        public PublishBase(IoTParameters parameters, Stream data = null) : base(parameters, data) { }
 
         const string META_PREFIX = "s-meta-";
 
@@ -29,8 +29,6 @@ namespace StoryCLM.SDK.IoT
             foreach (var t in _metadata)
                 request.Headers.Add($"{META_PREFIX}{t.Key}", t.Value);
         }
-
-        public IoTMessageType MessageType { get; protected set; } = IoTMessageType.Command;
 
     }
 }

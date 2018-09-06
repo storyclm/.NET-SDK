@@ -1,9 +1,7 @@
 ﻿using StoryCLM.SDK.IoT.Models;
 using System;
-using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.IO;
-using System.Net;
 using System.Net.Http;
 using System.Security.Cryptography;
 using System.Text;
@@ -18,10 +16,15 @@ namespace StoryCLM.SDK.IoT
         string _key;
         string _secret;
 
-        public IotHttpCommand(string key, string secret, Stream data = null)
+        public IotHttpCommand(IoTParameters parameters, Stream data = null)
         {
-            _key = key ?? throw new ArgumentNullException(nameof(key));
-            _secret = secret ?? throw new ArgumentNullException(nameof(secret));
+            if (parameters == null) throw new ArgumentNullException(nameof(parameters));
+            _key = parameters.Key;
+            _secret = parameters.Secret;
+            DeviceId = parameters.DeviceId;
+            IP = parameters.IP;
+            Expiration = parameters.Expiration == null ? null : (DateTimeOffset?)DateTimeOffset.UtcNow.Add(parameters.Expiration.Value);
+            Current = parameters.Current ? (DateTimeOffset?)DateTimeOffset.UtcNow : null;
             Data = data;
         }
 
@@ -29,6 +32,11 @@ namespace StoryCLM.SDK.IoT
 
         NameValueCollection _parameters = HttpUtility.ParseQueryString(string.Empty);
 
+        /// <summary>
+        /// Добавление дополнительных параметров
+        /// </summary>
+        /// <param name="name"></param>
+        /// <param name="value"></param>
         public virtual void SetParameter(string name, string value)
         {
             if (string.IsNullOrEmpty(name)) throw new ArgumentNullException(nameof(name));
@@ -94,10 +102,10 @@ namespace StoryCLM.SDK.IoT
         DateTimeOffset? _expiration;
 
         /// <summary>
-        /// Дата окончания действия подписи по UTC. 
+        /// Дата окончания действия сигнатуры по UTC. 
         /// Время жизни сигнатуры. 
         /// Необязательный параметр. Может быть затребован настройками хаба. 
-        /// Один и тот же набор параметров с сигнатурой можно использовать для публикации или потребления сообщений неограниченное количество раз если не будет указан этот параметр. 
+        /// Один и тот же набор параметров с сигнатурой можно использовать для публикации или потребления сообщений неограниченное количество раз, если не будет указан этот параметр. 
         /// Если указан параметр Expiration, то сигнатура будет валидна только до даты указанной в параметре. 
         /// После истечение этого времени сервер будет возвращать ошибку. 
         /// Для большей безопасности рекомендуется задавать этот параметр в настройках хаба как обязательный.
@@ -124,7 +132,7 @@ namespace StoryCLM.SDK.IoT
 
         public virtual Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        public virtual Uri Endpoint { get; set; } = new Uri("https://iot.storyclm.com/publish");
+        public virtual Uri Endpoint { get; set; } = new Uri("https://iot.storyclm.com");
 
         public virtual Stream Data { get; set; }
 

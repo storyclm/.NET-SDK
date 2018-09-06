@@ -31,7 +31,7 @@ namespace StoryCLM.SDK.Tables.Test
 
             List<Profile> profiles = new List<Profile>(await storyTable.InsertAsync(Profile.CreateProfiles()));
             Assert.NotNull(profiles);
-            Assert.True(profiles.Count() == 3);
+            Assert.True(profiles.Count() == 308);
         }
     }
 }

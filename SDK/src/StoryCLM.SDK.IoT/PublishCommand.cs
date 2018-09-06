@@ -1,22 +1,17 @@
 ﻿using Newtonsoft.Json;
 using StoryCLM.SDK.IoT.Models;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.IoT
 {
-    public class PublishCommand : PublishBase
+    public class PublishMessage : PublishBase
     {
-        public PublishCommand(string key, string secret, Stream data = null) : base(key, secret, data)
-        {
-            MessageType = IoTMessageType.Command;
-        }
+        public PublishMessage(IoTParameters parameters, Stream data = null) : base(parameters, data) {}
 
         public override async Task OnExecuting(HttpRequestMessage request, CancellationToken token)
         {
