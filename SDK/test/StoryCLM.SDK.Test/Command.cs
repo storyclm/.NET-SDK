@@ -10,6 +10,7 @@ namespace StoryCLM.SDK.Test
 {
     public class TestCommand : IHttpCommand
     {
+
         public string Method { get; set; }
         public Uri Uri { get; set; }
         public TimeSpan ExpiryTime { get; set; } = TimeSpan.Zero;
@@ -34,6 +35,8 @@ namespace StoryCLM.SDK.Test
 
     public class Command
     {
+        static Settings Settings => Settings.Get();
+
         [Fact]
         public async Task ExecuteCommand()
         {

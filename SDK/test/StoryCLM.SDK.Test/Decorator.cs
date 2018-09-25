@@ -37,6 +37,8 @@ namespace StoryCLM.SDK.Test
 
     public class Decorator
     {
+        static Settings Settings => Settings.Get();
+
         [Fact]
         public async Task Pipeline()
         {

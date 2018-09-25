@@ -44,6 +44,8 @@ namespace StoryCLM.SDK.Test
 
     public class RetryPolicy
     {
+        static Settings Settings => Settings.Get();
+
         [Fact]
         public async Task RetryCount()
         {

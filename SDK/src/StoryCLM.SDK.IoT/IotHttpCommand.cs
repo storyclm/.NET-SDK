@@ -179,9 +179,9 @@ namespace StoryCLM.SDK.IoT
             if (Current != null && Current.HasValue)
                 text.Append($"ct={Current.Value.ToUnixTimeMilliseconds()}");
 
-            using (HMACSHA256 encoder = new HMACSHA256(Encoding.UTF8.GetBytes(_secret)))
+            using (HMACSHA512 encoder = new HMACSHA512(Encoding.UTF8.GetBytes(_secret)))
             {
-                return BitConverter.ToString(encoder.ComputeHash(Encoding.UTF8.GetBytes(text.ToString()))).Replace("-", "").ToLower();
+                return Convert.ToBase64String(encoder.ComputeHash(Encoding.UTF8.GetBytes(text.ToString())));
             }
         }
 

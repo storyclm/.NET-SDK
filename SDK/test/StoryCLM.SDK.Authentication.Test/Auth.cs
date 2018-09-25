@@ -10,6 +10,9 @@ namespace StoryCLM.SDK.Authentication.Test
 {
     public class Auth
     {
+        static Settings Settings => Settings.Get();
+
+
         [Fact]
         public async Task UserLogin()
         {

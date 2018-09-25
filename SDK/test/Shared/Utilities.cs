@@ -16,13 +16,13 @@ namespace Shared
                 case 0: // service
                     {
                         SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(Settings.ServiceClientId, Settings.ServiceSecret);
+                        await sclm.AuthAsync(Settings.Get().ServiceClientId, Settings.Get().ServiceSecret);
                         return sclm;
                     }
                 case 1: // application (user)
                     {
                         SCLM sclm = new SCLM();
-                        await sclm.AuthAsync(Settings.UserClientId, Settings.UserSecret, Settings.Username, Settings.Password);
+                        await sclm.AuthAsync(Settings.Get().UserClientId, Settings.Get().UserSecret, Settings.Get().Username, Settings.Get().Password);
                         return sclm;
                     }
             }

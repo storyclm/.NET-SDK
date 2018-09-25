@@ -13,7 +13,7 @@ namespace StoryCLM.SDK.IoT
         const string IOT = "iot";
         const string PATH = "publish";
 
-        static async Task<byte[]> GetMessage(Stream stream, 
+        static async Task<byte[]> CreateMessage(Stream stream, 
             long threshold = 128 * 1024, 
             CancellationToken token = default(CancellationToken))
         {
@@ -24,7 +24,7 @@ namespace StoryCLM.SDK.IoT
                 using (MemoryStream ms = new MemoryStream())
                 {
                     int read;
-                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length)) > 0)
+                    while ((read = await stream.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
                     {
                         if (tokenSource.IsCancellationRequested) throw new OperationCanceledException(token);
                         await ms.WriteAsync(buffer, 0, read);
@@ -44,7 +44,7 @@ namespace StoryCLM.SDK.IoT
             Retry retry = new Retry();
             return await retry.Execute(async () =>
             {
-                using (MemoryStream stream = new MemoryStream(body)) // сообщение должно быть неизменяемое, что бы можно было повторить попытку отправки.
+                using (MemoryStream stream = new MemoryStream(body)) // сообщение должно быть неизменяемое, что бы можно было повторить попытку отправки. Потому кешим его в байт массив и потом опять в стрим при каждой попытке.
                 {
                     var command = new PublishMessage(parameters, stream);
                     command.Endpoint = new Uri(sclm.GetEndpoint(IOT) + PATH);
@@ -53,7 +53,9 @@ namespace StoryCLM.SDK.IoT
                         foreach (var t in meta)
                             command[t.Key] = t.Value;
 
-                    await sclm.ExecuteHttpCommand(command, cancellationToken: token);
+                    await sclm.ExecuteHttpCommand(command, cancellationToken: token).ConfigureAwait(false);
+                    command.Result._parameters = parameters;
+                    command.Result._sclm = sclm;
                     return command.Result;
                 }
             }, sclm.HttpQueryPolicy, token);
@@ -64,13 +66,28 @@ namespace StoryCLM.SDK.IoT
             Stream body,
             IDictionary<string, string> meta = null,
             CancellationToken token = default(CancellationToken)) =>
-            await PublishMessage(sclm, parameters, await GetMessage(body, token: token), meta, token);
+            await PublishMessage(sclm, parameters, await CreateMessage(body, token: token), meta, token).ConfigureAwait(false);
 
         public static async Task<Message> PublishEvent(this SCLM sclm,
             IoTParameters parameters,
             Stream body,
             IDictionary<string, string> meta = null,
             CancellationToken token = default(CancellationToken)) =>
-            await PublishMessage(sclm, parameters, await GetMessage(body, 256 * 1024, token), meta, token);
+            await PublishMessage(sclm, parameters, await CreateMessage(body, 256 * 1024, token), meta, token).ConfigureAwait(false);
+
+        public static Feed GetFeed(this SCLM sclm,
+            IoTParameters parameters,
+            string continuationToken = null, 
+            Section section = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            return new Feed(continuationToken)
+            {
+                _sclm = sclm,
+                CancellationToken = cancellationToken,
+                _parameters = parameters,
+                _section = section
+            };
+        }
     }
 }

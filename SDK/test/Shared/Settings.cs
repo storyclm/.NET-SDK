@@ -5,9 +5,9 @@ using System.Text;
 
 namespace Shared
 {
-    public static class Settings
+    public class Settings
     {
-       static IConfiguration configuration;
+        static IConfiguration configuration;
 
         static Settings()
         {
@@ -16,16 +16,30 @@ namespace Shared
                 .Build();
         }
 
-        public static string UserClientId => configuration[nameof(UserClientId)];
+        public static Settings Get() => configuration.Get<Settings>();
 
-        public static string UserSecret => configuration[nameof(UserSecret)];
+        public string UserClientId { get; set; }
 
-        public static string Username => configuration[nameof(Username)];
+        public string UserSecret { get; set; }
 
-        public static string Password => configuration[nameof(Password)];
+        public string Username { get; set; }
 
-        public static string ServiceClientId => configuration[nameof(ServiceClientId)];
+        public string Password { get; set; }
 
-        public static string ServiceSecret => configuration[nameof(ServiceSecret)];
+        public string ServiceClientId { get; set; }
+
+        public string ServiceSecret { get; set; }
+
+        public string CommandsKey { get; set; }
+
+        public string CommandSecret { get; set; }
+
+        public string EventsKey { get; set; }
+
+        public string EventSecret { get; set; }
+
+        public string DataKey { get; set; }
+
+        public string DataSecret { get; set; }
     }
 }

@@ -8,6 +8,8 @@ namespace StoryCLM.SDK.Users.Test
 {
     public class Users
     {
+        static Settings Settings => Settings.Get();
+
         public StoryCreateUserModel GetUserModel(string username)
         {
             return new StoryCreateUserModel()
