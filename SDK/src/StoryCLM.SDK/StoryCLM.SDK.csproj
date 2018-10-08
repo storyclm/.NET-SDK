@@ -23,6 +23,7 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
+    <PackageReference Include="StoryCLM.ResourceManager" Version="0.1.0" />
     <PackageReference Include="StoryCLM.SDK.Common" Version="0.1.4" />
   </ItemGroup>
 

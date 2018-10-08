@@ -80,5 +80,22 @@ namespace StoryCLM.SDK.Authentication.Test
             await Assert.ThrowsAsync<Exception>(() => sclm.AuthAsync(Settings.UserClientId, Settings.UserSecret, token.RefreshToken + "sdfsdf"));
             await Assert.ThrowsAsync<Exception>(() => sclm.AuthAsync(Settings.UserClientId, null, token2.RefreshToken));
         }
+
+        [Fact]
+        public async Task RefreshWhile()
+        {
+            SCLM sclm = new SCLM();
+            StoryToken token = await sclm.AuthAsync(Settings.UserClientId, Settings.UserSecret, Settings.Username, Settings.Password);
+            Assert.NotNull(token.RefreshToken);
+
+            string rToken = token.RefreshToken;
+            for (int i = 0; i < 1000; i++)
+            {
+                var t1 = await sclm.AuthAsync(Settings.UserClientId, Settings.UserSecret, rToken);
+                Assert.NotNull(t1.RefreshToken);
+                rToken = t1.RefreshToken;
+            }
+
+        }
     }
 }
