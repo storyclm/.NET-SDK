@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
-
-namespace StoryCLM.SDK.Users
+﻿namespace StoryCLM.SDK.Users
 {
-   public class StorySimpleUserItem
+    public class StorySimpleUserItem
     {
         /// <summary>
         /// Идентификатор 

@@ -1,5 +1,4 @@
 ﻿using Shared;
-using StoryCLM.SDK.Authentication;
 using System;
 using System.Net.Http;
 using System.Threading;

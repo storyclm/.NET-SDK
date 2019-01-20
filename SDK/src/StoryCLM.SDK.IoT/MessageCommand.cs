@@ -18,7 +18,7 @@ namespace StoryCLM.SDK.IoT
 
         public T Result { get; set; }
 
-        public override async Task OnExecuting(HttpRequestMessage request, CancellationToken token) {}
+        public override async Task OnExecuting(HttpRequestMessage request, CancellationToken token) => await Task.CompletedTask;
 
         public override async Task OnExecuted(HttpResponseMessage response, CancellationToken token)
         {

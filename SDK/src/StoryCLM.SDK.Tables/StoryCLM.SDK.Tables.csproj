@@ -4,23 +4,23 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <Authors>Breffi LLC</Authors>
     <Company>Breffi LLC</Company>
-    <Product>StoryCLM</Product>
-    <Description>StoryCLM — a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
-    <Copyright>© 2018. BREFFI</Copyright>
+    <Product>Story</Product>
+    <Description>Story— a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
+    <Copyright>© 2019. BREFFI</Copyright>
     <PackageLicenseUrl>https://github.com/storyclm/.NET-SDK/blob/master/LICENSE</PackageLicenseUrl>
     <PackageProjectUrl>https://breffi.ru/en/storyclm</PackageProjectUrl>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/17642277</PackageIconUrl>
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <PackageTags>StoryCLM</PackageTags>
-    <AssemblyVersion>2.2.0.0</AssemblyVersion>
-    <FileVersion>2.2.0.0</FileVersion>
-    <Version>2.2.0</Version>
+    <AssemblyVersion>2.2.1.0</AssemblyVersion>
+    <FileVersion>2.2.1.0</FileVersion>
+    <Version>2.2.1</Version>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="StoryCLM.SDK" Version="2.3.10" />
+    <PackageReference Include="StoryCLM.SDK" Version="2.3.11" />
   </ItemGroup>
 
 </Project>

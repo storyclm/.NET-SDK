@@ -1,8 +1,11 @@
-﻿using SroryCLM.SDK.Common.Retry;
+﻿using Breffi.Story.Common.Retry;
 using StoryCLM.SDK.IoT.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Net;
+using System.Net.Http;
+using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -13,14 +16,12 @@ namespace StoryCLM.SDK.IoT
         const string IOT = "iot";
         const string PATH = "publish";
 
-        static async Task<byte[]> CreateMessage(Stream stream, 
-            long threshold = 128 * 1024, 
-            CancellationToken token = default(CancellationToken))
+        static async Task<byte[]> CreateMessage(Stream stream, long threshold = 256 * 1024, CancellationToken token = default(CancellationToken))
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
             using (CancellationTokenSource tokenSource = CancellationTokenSource.CreateLinkedTokenSource(token))
             {
-                byte[] buffer = new byte[4 * 1024];
+                byte[] buffer = new byte[16 * 1024];
                 using (MemoryStream ms = new MemoryStream())
                 {
                     int read;
@@ -35,7 +36,7 @@ namespace StoryCLM.SDK.IoT
             }
         }
 
-        static async Task<Message> PublishMessage(SCLM sclm,
+        public static async Task<Message> Send(SCLM sclm,
             IoTParameters parameters,
             byte[] body,
             IDictionary<string, string> meta = null,
@@ -44,10 +45,10 @@ namespace StoryCLM.SDK.IoT
             Retry retry = new Retry();
             return await retry.Execute(async () =>
             {
-                using (MemoryStream stream = new MemoryStream(body)) // сообщение должно быть неизменяемое, что бы можно было повторить попытку отправки. Потому кешим его в байт массив и потом опять в стрим при каждой попытке.
+                using (MemoryStream stream = new MemoryStream(body ?? new byte[] { }))
                 {
                     var command = new PublishMessage(parameters, stream);
-                    command.Endpoint = new Uri(sclm.GetEndpoint(IOT) + PATH);
+                    command.Endpoint = new Uri($"{sclm.GetEndpoint(IOT)}{parameters.Hub}/{PATH}");
 
                     if (meta != null)
                         foreach (var t in meta)
@@ -61,19 +62,46 @@ namespace StoryCLM.SDK.IoT
             }, sclm.HttpQueryPolicy, token);
         }
 
-        public static async Task<Message> PublishCommand(this SCLM sclm,
-            IoTParameters parameters,
-            Stream body,
-            IDictionary<string, string> meta = null,
-            CancellationToken token = default(CancellationToken)) =>
-            await PublishMessage(sclm, parameters, await CreateMessage(body, token: token), meta, token).ConfigureAwait(false);
+        static async Task<string> UploadChank(Uri url, 
+            byte[] body, 
+            IRetryPolicy policy,
+            CancellationToken token = default(CancellationToken))
+        {
+            Retry retry = new Retry();
+            return await retry.Execute(async () =>
+            {
+                using (SHA512 sha512 = SHA512.Create())
+                using (MemoryStream b = new MemoryStream(body))
+                using (HashableStream stream = new HashableStream(b, sha512))
+                {
+                    StreamContent content = new StreamContent(stream, 1024 * 64);
+                    content.Headers.ContentLength = stream.Length;
+                    content.Headers.Add("x-ms-blob-type", "BlockBlob");
+                    using (var httpClient = new HttpClient())
+                    using (var httpRequest = new HttpRequestMessage(HttpMethod.Put, url) { Content = content })
+                    using (HttpResponseMessage response = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead))
+                    {
+                        if (response.StatusCode != HttpStatusCode.Created) new HttpCommandException((int)response.StatusCode, null);
+                        return $"base64;sha512;{Convert.ToBase64String(stream.Hash)}";
+                    }
+                }
+            }, policy, token);
+        }
 
-        public static async Task<Message> PublishEvent(this SCLM sclm,
+        public static async Task<Message> Publish(this SCLM sclm,
             IoTParameters parameters,
-            Stream body,
+            byte[] body,
             IDictionary<string, string> meta = null,
-            CancellationToken token = default(CancellationToken)) =>
-            await PublishMessage(sclm, parameters, await CreateMessage(body, 256 * 1024, token), meta, token).ConfigureAwait(false);
+            CancellationToken token = default(CancellationToken))
+        {
+            if (body == null || body.Length <= 256 * 1024)
+                return await Send(sclm, parameters, body, meta, token);
+
+            var message = await Send(sclm, parameters, null, meta, token);
+            message.Hash = await UploadChank(message.Location, body, sclm.HttpQueryPolicy, token);
+            await message.Confirm();
+            return message;
+        }
 
         public static Feed GetFeed(this SCLM sclm,
             IoTParameters parameters,

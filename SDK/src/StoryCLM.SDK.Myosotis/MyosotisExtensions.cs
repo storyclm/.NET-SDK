@@ -1,4 +1,4 @@
-﻿using SroryCLM.SDK.Common.Retry;
+﻿using Breffi.Story.Common.Retry;
 using StoryCLM.SDK.Myosotis.Models;
 using System;
 using System.Collections.Generic;
@@ -62,6 +62,9 @@ namespace StoryCLM.SDK.Myosotis
 
         public static async Task<MyoProfile> GetProfileAsync(this SCLM sclm) =>
             await SendAsync<MyoProfile>(sclm, _get, new Uri($"{sclm.GetMyoEndpoint()}{_apiVersionV2}user/"), null, CancellationToken.None);
+
+        public static async Task<MyoProfile> GetProfileAsync(this SCLM sclm, string id) =>
+            await SendAsync<MyoProfile>(sclm, _get, new Uri($"{sclm.GetMyoEndpoint()}{_apiVersionV2}user/{id}/"), null, CancellationToken.None);
 
         public static async Task<MyoProfile> GetProfileByXmppLoginAsync(this SCLM sclm, string xmpplogin) =>
             await SendAsync<MyoProfile>(sclm, _get, new Uri($"{sclm.GetMyoEndpoint()}{_apiVersionV2}user/?xmpp={xmpplogin}"), null, CancellationToken.None);

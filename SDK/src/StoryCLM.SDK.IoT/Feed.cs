@@ -55,13 +55,11 @@ namespace StoryCLM.SDK.IoT
             var command = new FeedCommand(_parameters)
             {
                 ContinuationToken = _position,
-                Endpoint = new Uri($"{_sclm.GetEndpoint(IOT)}feed/{_section}")
+                Endpoint = new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/feed/{_section}")
             };
 
             if (!string.IsNullOrEmpty(_position)) // кастыль!!
                 command.SetParameter("token", _position);
-
-            command.SetParameter("take", "100");
 
             await _sclm.ExecuteHttpCommand(command, _sclm.HttpQueryPolicy, CancellationToken).ConfigureAwait(false);
             _position = command.ContinuationToken;

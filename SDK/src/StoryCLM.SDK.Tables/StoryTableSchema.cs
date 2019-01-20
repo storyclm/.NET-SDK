@@ -1,10 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-namespace StoryCLM.SDK.Tables
+﻿namespace StoryCLM.SDK.Tables
 {
     /// <summary>
     /// Элемент схемы таблицы

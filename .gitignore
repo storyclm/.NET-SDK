@@ -241,3 +241,4 @@ ModelManifest.xml
 # FAKE - F# Make
 .fake/
 SDK/test/Shared/Settings.json
+SDK/nuget.ps1

@@ -1,10 +1,10 @@
 ﻿/*!
 * StoryCLM.SDK Library v2.3.5
-* Copyright(c) 2018, Vladimir Klyuev, Breffi Inc. All rights reserved.
+* Copyright(c) 2019, Vladimir Klyuev, Breffi Inc. All rights reserved.
 * License: Licensed under The MIT License.
 */
+using Breffi.Story.Common.Retry;
 using Microsoft.Extensions.Logging;
-using SroryCLM.SDK.Common.Retry;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -55,7 +55,7 @@ namespace StoryCLM.SDK
             SetEndpoint(_api, "https://api.storyclm.com");
             SetEndpoint(_auth, "https://auth.storyclm.com");
             SetEndpoint(_myo, "https://myosotis.storyclm.com");
-            SetEndpoint(_iot, "https://iot.storyclm.com");
+            SetEndpoint(_iot, "https://iot.storychannels.app");
             _logger = logger;
         }
 

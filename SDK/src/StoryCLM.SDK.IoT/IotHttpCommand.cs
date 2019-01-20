@@ -132,7 +132,7 @@ namespace StoryCLM.SDK.IoT
 
         public virtual Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        public virtual Uri Endpoint { get; set; } = new Uri("https://iot.storyclm.com");
+        public virtual Uri Endpoint { get; set; } = new Uri("https://iot.storychannels.app");
 
         public virtual Stream Data { get; set; }
 

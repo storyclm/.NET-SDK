@@ -1,4 +1,4 @@
-﻿using SroryCLM.SDK.Common.Retry;
+﻿using Breffi.Story.Common.Retry;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -8,18 +8,21 @@ using System.Threading.Tasks;
 
 namespace StoryCLM.SDK.IoT.Models
 {
-    public enum MessageResultMode
-    {
-        Read,
-        Write
-    }
 
     #warning дублируется код
     public class Message
     {
         const string IOT = "iot";
 
+        const string DELETEEX = "Message has been deleted.";
+
         static readonly HttpClient _httpClient;
+
+        Uri _endpoint => new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/storage/{Id}/");
+
+        DateTimeOffset _expiration;
+
+        bool _deleted;
 
         static Message()
         {
@@ -32,47 +35,38 @@ namespace StoryCLM.SDK.IoT.Models
             _httpClient.DefaultRequestHeaders.ConnectionClose = false;
         }
 
-        internal Message() {}
+        internal Message()
+        {
+            _expiration = DateTimeOffset.UtcNow.AddDays(1).AddMinutes(-5);
+        }
 
         public string this[string i]
         {
-            get => Meta?[i];
+            get => Metadata?[i];
             set
             {
-                if (Meta == null) return;
-                Meta[i] = value;
+                if (Metadata == null) return;
+                Metadata[i] = value;
             }
         }
-
-        #region internal
 
         internal SCLM _sclm { get; set; }
 
         internal IoTParameters _parameters { get; set; }
 
-        #endregion
+        public virtual string Id { get; set; }
 
-        #region Base
+        public virtual IDictionary<string, string> Metadata { get; set; } = new Dictionary<string, string>();
 
-        public string Id { get; set; }
+        public virtual long? Ticks { get; set; }
 
-        public IDictionary<string, string> Meta { get; set; } = new Dictionary<string, string>();
+        public virtual Uri Location { get; set; }
 
-        public DateTimeOffset? Date { get; set; }
+        public virtual string Signature { get; set; }
 
-        public string Hash { get; set; }
+        public virtual string Hash { get; set; }
 
-        public long? Lenght { get; set; }
-
-        public Uri Uri { get; set; }
-
-        public DateTimeOffset Expiration { get; set; }
-
-        public MessageResultMode Mode { get; set; }
-
-        #endregion
-
-        Uri _endpoint => new Uri($"{_sclm.GetEndpoint(IOT)}storage/{Id}/");
+        public virtual long? Lenght { get; set; }
 
         public async Task Delete()
         {
@@ -83,11 +77,40 @@ namespace StoryCLM.SDK.IoT.Models
                 Method = "DELETE",
                 Endpoint = _endpoint
             };
+            
             await _sclm.ExecuteHttpCommand(command, _sclm.HttpQueryPolicy);
+            if (command.Exception == null)
+                _deleted = true;
+        }
+
+        public async Task Confirm()
+        {
+            if (string.IsNullOrEmpty(Id)) throw new ArgumentNullException(nameof(Id));
+            if (_sclm == null || _parameters == null) throw new InvalidOperationException();
+            var command = new MessageCommand<Message>(_parameters)
+            {
+                Method = "PUT",
+                Endpoint = new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/publish/{Id}/confirm")
+            };
+            command.SetParameter("hash", Hash);
+            await _sclm.ExecuteHttpCommand(command, _sclm.HttpCommandPolicy);
+            Up(command);
+        }
+
+        void Up(MessageCommand<Message> command)
+        {
+            if (command.Exception != null) throw command.Exception;
+            Location = command.Result.Location;
+            Hash = command.Result.Hash;
+            Ticks = command.Result.Ticks;
+            Signature = command.Result.Signature;
+            Lenght = command.Result.Lenght;
+            Metadata = command.Result.Metadata;
         }
 
         async Task Update()
         {
+            if(_deleted) throw new InvalidOperationException(DELETEEX);
             if (string.IsNullOrEmpty(Id)) throw new ArgumentNullException(nameof(Id));
             if (_sclm == null || _parameters == null) throw new InvalidOperationException();
             var command = new MessageCommand<Message>(_parameters)
@@ -95,35 +118,25 @@ namespace StoryCLM.SDK.IoT.Models
                 Endpoint = _endpoint
             };
             await _sclm.ExecuteHttpCommand(command, _sclm.HttpQueryPolicy);
-            Mode = command.Result.Mode;
-            Hash = command.Result.Hash;
-            Uri = command.Result.Uri;
-            Expiration = command.Result.Expiration;
-            Lenght = command.Result.Lenght;
-            Meta = command.Result.Meta;
+            _expiration = DateTimeOffset.UtcNow.AddDays(1).AddMinutes(-5);
+            Up(command);
         }
 
         public async Task Save(Stream stream)
         {
+            if (_deleted) throw new InvalidOperationException(DELETEEX);
             if (stream == null) throw new ArgumentNullException(nameof(stream));
-            if (Mode == MessageResultMode.Write 
-                || !Lenght.HasValue
-                || !stream.CanWrite
-                || Uri == null
-                || string.IsNullOrEmpty(Hash))
-                throw new InvalidOperationException("Invalid message.");
-
             Retry retry = new Retry();
             await retry.Execute(async () =>
             {
-                if (Expiration <= DateTimeOffset.UtcNow)
+                if (_expiration <= DateTimeOffset.UtcNow)
                     await Update();
 
                 if (stream.CanSeek)
                     stream.Seek(0, SeekOrigin.Begin);
 
-                using (SHA256 sha256 = SHA256.Create())
-                using (Stream response = await _httpClient.GetStreamAsync(Uri).ConfigureAwait(false))
+                using (SHA512 sha512 = SHA512.Create())
+                using (Stream response = await _httpClient.GetStreamAsync(Location).ConfigureAwait(false))
                 {
                     byte[] buffer = new byte[8 * 1024];
                     int lenght = 0;
@@ -132,10 +145,10 @@ namespace StoryCLM.SDK.IoT.Models
                     {
                         await stream.WriteAsync(buffer, 0, lenght);
                         if (stream.Length > threshold) throw new InvalidOperationException("Message body too large.");
-                        sha256.TransformBlock(buffer, 0, lenght, null, 0);
+                        sha512.TransformBlock(buffer, 0, lenght, null, 0);
                     }
-                    sha256.TransformFinalBlock(buffer, 0, 0);
-                    if(Hash != Convert.ToBase64String(sha256.Hash)) throw new InvalidOperationException("Wrong hash.");
+                    sha512.TransformFinalBlock(buffer, 0, 0);
+                    if(Hash != $"base64;sha512;{Convert.ToBase64String(sha512.Hash)}") throw new InvalidOperationException("Wrong hash.");
                 }
 
             }, _sclm.HttpQueryPolicy);

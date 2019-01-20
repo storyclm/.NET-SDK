@@ -22,7 +22,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\src\StoryCLM.SDK.Common\StoryCLM.SDK.Common.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK.IoT\StoryCLM.SDK.IoT.csproj" />
     <ProjectReference Include="..\..\src\StoryCLM.SDK\StoryCLM.SDK.csproj" />
     <ProjectReference Include="..\Shared\Shared.csproj" />
@@ -30,6 +29,9 @@
 
   <ItemGroup>
     <None Update="json.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="psd.psd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>

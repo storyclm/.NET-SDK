@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using Xunit;
 
@@ -11,33 +12,38 @@ namespace StoryCLM.SDK.IoT.Test
 {
     public class Test
     {
-        static Settings _settings => Settings.Get();
+        const int ITEMSCOUNT = 100;
 
-        static IoTParameters CommandParameters => new IoTParameters(_settings.CommandsKey, _settings.CommandSecret);
-        static IoTParameters EventParameters => new IoTParameters(_settings.EventsKey, _settings.EventSecret);
-        static IoTParameters DataParameters => new IoTParameters(_settings.DataKey, _settings.DataSecret);
+        Settings _settings => Settings.Get();
 
-        static byte[] CommandBody => File.ReadAllBytes("json.json");
+        IoTParameters _parameters => new IoTParameters(_settings.IoTHub, _settings.IoTKey, _settings.IoTSecret);
 
-        static IEnumerable<string> Items => Enumerable.Range(1, 100).Select(t => Guid.NewGuid().ToString("N")).ToArray();
+        byte[] Json => File.ReadAllBytes("json.json");
+        byte[] Psd => File.ReadAllBytes("psd.psd");
 
-        static IEnumerable<Message> GetMessages(IoTParameters parameters, IEnumerable<string> items)
+        IEnumerable<string> _items => Enumerable.Range(1, ITEMSCOUNT).Select(t => Guid.NewGuid().ToString("N")).ToArray();
+
+        IDictionary<string, string> _meta = new Dictionary<string, string>
+        {
+            ["DeviceId"] = "6DCAD6B6E6134A33BAE33B27D6C8C5E5",
+            ["UserId"] = "8C21115C-41EB-4428-9215-2367F34BA0DD",
+            ["Date"] = DateTime.Now.ToShortTimeString()
+        };
+
+        static IEnumerable<Message> GetMessages(IoTParameters parameters, IEnumerable<string> items, string continuationToken)
         {
             List<Message> messages = new List<Message>();
-            foreach (var t in new SCLM().GetFeed(parameters, section: new HourSection().Hour(DateTimeOffset.UtcNow.Hour)))
-                messages.AddRange(t.Messages.Where(s => items.Contains(s.Meta["item"])));
+            foreach (var t in new SCLM().GetFeed(parameters, continuationToken))
+                messages.AddRange(t.Messages.Where(s => items.Contains(s.Metadata.ContainsKey("item") ? s.Metadata["item"] : null)));
             return messages;
         }
 
-        static async Task<Message> SendCommand(string item, byte[] body)
+        async Task<Message> Pub(string item, byte[] body)
         {
-            using (MemoryStream stream = new MemoryStream(body))
+            return await (new SCLM()).Publish(_parameters, body, new Dictionary<string, string>()
             {
-                return await (new SCLM()).PublishCommand(CommandParameters, stream, new Dictionary<string, string>()
-                {
-                    ["item"] = item
-                });
-            }
+                ["item"] = item
+            });
         }
 
         [Fact]
@@ -72,22 +78,83 @@ namespace StoryCLM.SDK.IoT.Test
             Assert.Equal($"{2018}/", $"{new YearSection().Year(2018)}"); // собирает за весь год
         }
 
-        [Fact]
-        public async Task PublishCommands()
+        public string GetHash(byte[] message)
         {
-            var items = Items;
+            using (SHA512 sha512 = SHA512.Create())
+            using (MemoryStream stream = new MemoryStream(message))
+            {
+                byte[] buffer = new byte[8 * 1024];
+                int lenght = 0;
+                while ((lenght = stream.Read(buffer, 0, buffer.Length)) > 0)
+                {
+                    sha512.TransformBlock(buffer, 0, lenght, null, 0);
+                }
+                sha512.TransformFinalBlock(buffer, 0, 0);
+                return $"base64;sha512;{Convert.ToBase64String(sha512.Hash)}";
+            }
+        }
+
+        async Task Publish(byte[] message)
+        {
+            string filename = "test.bin";
+            try
+            {
+                string hash = GetHash(message);
+                SCLM sclm = new SCLM();
+                var result = await sclm.Publish(_parameters, message, _meta);
+                Assert.NotNull(result);
+                Assert.Equal(message.Length, result.Lenght);
+                Assert.Equal(hash, result.Hash);
+                using (var file = File.OpenWrite(filename))
+                {
+                    await result.Save(file);
+                }
+                Assert.Equal(hash, GetHash(File.ReadAllBytes(filename)));
+            }
+            catch
+            {
+                throw;
+            }
+            finally
+            {
+                if (File.Exists(filename))
+                    File.Delete(filename);
+            }
+        }
+
+        [Fact]
+        public async Task PublishMessage()
+        {
+            byte[] message = Json;
+            await Publish(message);
+
+            SCLM sclm = new SCLM();
+            var result = await sclm.Publish(_parameters, null, _meta);
+            Assert.Null(result.Hash);
+            Assert.Equal(0, result.Lenght);
+
+            message = Psd;
+            await Publish(message);
+        }
+
+
+        [Fact]
+        public async Task PublishMany()
+        {
+            DateTimeOffset continuationToken = DateTimeOffset.UtcNow;
+            var items = _items;
             for (int i = 0; i < items.Count(); i++)
-                await SendCommand(items.ElementAt(i), CommandBody);
+                await Pub(items.ElementAt(i), Json);
 
-            var messages = GetMessages(CommandParameters, items);
+            var messages = GetMessages(_parameters, items, continuationToken.Ticks.ToString());
 
-            Assert.Equal(100, messages.Count());
-            Assert.True(messages.Where(t => items.Contains(t.Meta["item"])).Select(t => t.Meta["item"]).Intersect(items).Count() == items.Count());
+            Assert.Equal(ITEMSCOUNT, messages.Count());
+            Assert.True(messages.Where(t => items.Contains(t.Metadata["item"])).Select(t => t.Metadata["item"]).Intersect(items).Count() == items.Count());
 
             foreach (var t in messages)
                 await t.Delete();
 
-            messages = GetMessages(CommandParameters, items);
+            messages = GetMessages(_parameters, items, continuationToken.Ticks.ToString());
 
             Assert.Empty(messages);
         }

@@ -9,11 +9,14 @@ namespace StoryCLM.SDK.IoT.Models
     /// </summary>
     public class IoTParameters
     {
-        public IoTParameters(string key, string secret)
+        public IoTParameters(string hub, string key, string secret)
         {
+            Hub = hub ?? throw new ArgumentNullException(nameof(hub));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Secret = secret ?? throw new ArgumentNullException(nameof(secret));
         }
+
+        public string Hub { get; set; }
 
         public string Key { get; private set; }
 

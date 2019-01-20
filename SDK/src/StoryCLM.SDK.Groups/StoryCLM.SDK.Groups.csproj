@@ -17,4 +17,8 @@
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
+  <ItemGroup>
+    <PackageReference Include="StoryCLM.SDK" Version="2.3.11" />
+  </ItemGroup>
+
 </Project>

@@ -1,10 +1,8 @@
-﻿using Shared;
-using SroryCLM.SDK.Common.Retry;
+﻿using Breffi.Story.Common.Retry;
+using Shared;
 using StoryCLM.SDK.Authentication;
 using System;
-using System.Collections.Generic;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Xunit;
@@ -42,7 +40,7 @@ namespace StoryCLM.SDK.Test
         }
     }
 
-    public class RetryPolicy
+    public class RetryPolicy1
     {
         static Settings Settings => Settings.Get();
 
@@ -56,7 +54,7 @@ namespace StoryCLM.SDK.Test
                 Uri = new Uri($"{sclm.GetEndpoint("api")}v1/users/"),
                 Method = "GET",
             };
-            await sclm.ExecuteHttpCommand(retryCommand, new SroryCLM.SDK.Common.Retry.RetryPolicy()
+            await sclm.ExecuteHttpCommand(retryCommand, new RetryPolicy()
             {
                 ExponentialBackoff = true,
                 Interval = TimeSpan.FromMilliseconds(50),
@@ -75,7 +73,7 @@ namespace StoryCLM.SDK.Test
                 Uri = new Uri($"{sclm.GetEndpoint("api")}v1/users/"),
                 Method = "GET",
             };
-            await sclm.ExecuteHttpCommand(retryCommand, new SroryCLM.SDK.Common.Retry.RetryPolicy()
+            await sclm.ExecuteHttpCommand(retryCommand, new RetryPolicy()
             {
                 ExponentialBackoff = false,
                 Interval = TimeSpan.FromMilliseconds(50),
