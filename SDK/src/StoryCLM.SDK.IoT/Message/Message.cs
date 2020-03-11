@@ -6,19 +6,17 @@ using System.Net.Http;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
 
-namespace StoryCLM.SDK.IoT.Models
+namespace StoryCLM.SDK.IoT
 {
-
     #warning дублируется код
     public class Message
     {
         const string IOT = "iot";
-
-        const string DELETEEX = "Message has been deleted.";
+        const string DELETEEX = "Message has been deleted";
 
         static readonly HttpClient _httpClient;
 
-        Uri _endpoint => new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/storage/{Id}/");
+        Uri _endpoint => new Uri($"{_parameters.Endpoint}{_parameters.Hub}/storage/{Id}/");
 
         DateTimeOffset _expiration;
 
@@ -90,7 +88,7 @@ namespace StoryCLM.SDK.IoT.Models
             var command = new MessageCommand<Message>(_parameters)
             {
                 Method = "PUT",
-                Endpoint = new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/publish/{Id}/confirm")
+                Endpoint = new Uri($"{_parameters.Endpoint}{_parameters.Hub}/publish/{Id}/confirm")
             };
             command.SetParameter("hash", Hash);
             await _sclm.ExecuteHttpCommand(command, _sclm.HttpCommandPolicy);
@@ -144,11 +142,11 @@ namespace StoryCLM.SDK.IoT.Models
                     while ((lenght = await response.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) > 0)
                     {
                         await stream.WriteAsync(buffer, 0, lenght);
-                        if (stream.Length > threshold) throw new InvalidOperationException("Message body too large.");
+                        if (stream.Length > threshold) throw new InvalidOperationException("Message body too large");
                         sha512.TransformBlock(buffer, 0, lenght, null, 0);
                     }
                     sha512.TransformFinalBlock(buffer, 0, 0);
-                    if(Hash != $"base64;sha512;{Convert.ToBase64String(sha512.Hash)}") throw new InvalidOperationException("Wrong hash.");
+                    if(Hash != sha512.Hash.ToHashString()) throw new InvalidOperationException("Wrong hash");
                 }
 
             }, _sclm.HttpQueryPolicy);

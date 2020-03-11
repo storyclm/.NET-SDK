@@ -1,5 +1,4 @@
 ﻿using Breffi.Story.Common.Retry;
-using StoryCLM.SDK.IoT.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -16,6 +15,12 @@ namespace StoryCLM.SDK.IoT
         const string IOT = "iot";
         const string PATH = "publish";
 
+        public static string ToHashString(this byte[] array)
+        {
+            if (array == null || array.Length == 0) return string.Empty;
+            return $"base64;sha512;{Convert.ToBase64String(array)}";
+        }
+
         static async Task<byte[]> CreateMessage(Stream stream, long threshold = 256 * 1024, CancellationToken token = default(CancellationToken))
         {
             if (stream == null) throw new ArgumentNullException(nameof(stream));
@@ -29,7 +34,7 @@ namespace StoryCLM.SDK.IoT
                     {
                         if (tokenSource.IsCancellationRequested) throw new OperationCanceledException(token);
                         await ms.WriteAsync(buffer, 0, read);
-                        if (ms.Length > threshold) throw new InvalidOperationException($"Threshold: {threshold}.");
+                        if (ms.Length > threshold) throw new InvalidOperationException($"Threshold: {threshold}");
                     }
                     return ms.ToArray();
                 }
@@ -48,7 +53,7 @@ namespace StoryCLM.SDK.IoT
                 using (MemoryStream stream = new MemoryStream(body ?? new byte[] { }))
                 {
                     var command = new PublishMessage(parameters, stream);
-                    command.Endpoint = new Uri($"{sclm.GetEndpoint(IOT)}{parameters.Hub}/{PATH}");
+                    command.Endpoint = new Uri($"{parameters.Endpoint}{parameters.Hub}/{PATH}");
 
                     if (meta != null)
                         foreach (var t in meta)
@@ -82,7 +87,7 @@ namespace StoryCLM.SDK.IoT
                     using (HttpResponseMessage response = await httpClient.SendAsync(httpRequest, HttpCompletionOption.ResponseHeadersRead))
                     {
                         if (response.StatusCode != HttpStatusCode.Created) new HttpCommandException((int)response.StatusCode, null);
-                        return $"base64;sha512;{Convert.ToBase64String(stream.Hash)}";
+                        return stream.Hash.ToHashString();
                     }
                 }
             }, policy, token);

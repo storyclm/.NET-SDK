@@ -68,7 +68,7 @@ namespace StoryCLM.SDK.Users.Test
             var user = await sclm.UserExistsAsync(username);
 
             SCLM s = new SCLM();
-            await s.AuthAsync(Settings.UserClientId, Settings.UserSecret, username, Settings.Password);
+            //await s.AuthAsync(Settings.UserClientId, Settings.UserSecret, username, Settings.Password);
         }
 
         [Theory]

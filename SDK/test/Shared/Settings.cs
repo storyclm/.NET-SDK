@@ -18,6 +18,8 @@ namespace Shared
 
         public static Settings Get() => configuration.Get<Settings>();
 
+        public string AuthEndpoint { get; set; }
+
         public string UserClientId { get; set; }
 
         public string UserSecret { get; set; }
@@ -35,6 +37,8 @@ namespace Shared
         public string IoTKey { get; set; }
 
         public string IoTSecret { get; set; }
+
+
 
 
     }

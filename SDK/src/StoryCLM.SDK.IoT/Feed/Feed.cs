@@ -1,5 +1,4 @@
-﻿using StoryCLM.SDK.IoT.Models;
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Threading;
@@ -55,7 +54,7 @@ namespace StoryCLM.SDK.IoT
             var command = new FeedCommand(_parameters)
             {
                 ContinuationToken = _position,
-                Endpoint = new Uri($"{_sclm.GetEndpoint(IOT)}{_parameters.Hub}/feed/{_section}")
+                Endpoint = new Uri($"{_parameters.Endpoint}{_parameters.Hub}/feed/{_section}")
             };
 
             if (!string.IsNullOrEmpty(_position)) // кастыль!!

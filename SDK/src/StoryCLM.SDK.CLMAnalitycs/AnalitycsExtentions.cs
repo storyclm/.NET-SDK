@@ -1,194 +1,155 @@
-﻿using StoryCLM.SDK;
-using StoryCLM.SDK.Extensions;
-using StoryCLM.SDK.Models;
+﻿using StoryCLM.SDK.CLMAnalitycs.Models;
 using System;
+using System.Collections;
 using System.Collections.Generic;
-using System.Text;
+using System.Collections.Specialized;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Web;
 
-namespace SroryCLM.SDK.CLMAnalitycs
+namespace StoryCLM.SDK.CLMAnalitycs
 {
     public static class AnalitycsExtentions
     {
-        public static string Version = "v1";
-        public static string Path = @"analitycs/clm";
+        internal const string Version = "v1";
+        internal const string Path = @"analitycs/clm";
 
         const string kAnalitycsSessions = @"sessions";
         const string kAnalitycsCustomEvents = @"customevents";
-        const string kAnalitycsSlidesdemonstrations = @"slidesdemonstrations";
+        const string kAnalitycsSlidesdemonstrations = @"slides";
 
-        const string kAnalitycsSessionsFeed = @"sessions/feed";
-        const string kAnalitycsCustomEventsFeed = @"customevents/feed";
-        const string kAnalitycsSlidesdemonstrationsFeed = @"slidesdemonstrations/feed";
+        const string kAnalitycskpis = @"kpis";
+        const string kAnalitycskpip = @"kpip";
 
-        const string kAnalitycsSessionsCount = @"sessions/count";
-        const string kAnalitycsCustomEventsCount = @"customevents/count";
-        const string kAnalitycsSlidesdemonstrationsCount = @"slidesdemonstrations/count";
 
-       static Uri GetUri(SCLM sclm, string query) =>
-            new Uri($"{sclm.GetEndpoint("api")}/{Version}/{Path}/{query}", UriKind.Absolute);
+        static Uri GetUri(SCLM sclm, string query) =>
+            new Uri($"{sclm.GetEndpoint("api")}{Version}/{Path}/{query}", UriKind.Absolute);
 
-        #region Sessions
 
-        public static async Task<IEnumerable<StoryPresentationSession>> GetSessionsAsync(this SCLM sclm, 
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100,
-            bool completeOnly = false)
+        public static CLMAnalitycsFeed<StorySessionEvent> GetSessionFeed(this SCLM sclm, 
+            int presentationId,
+            string userId = null,
+            Section section = null,
+            long? continuationToken = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSessions}?");
-            query.Append($"skip={skip}&take={take}&");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()), CancellationToken.None);
+            return new CLMAnalitycsFeed<StorySessionEvent>(kAnalitycsSessions, presentationId, userId, section, continuationToken)
+            {
+                _sclm = sclm,
+                CancellationToken = cancellationToken
+            };
         }
 
-        public static async Task<IEnumerable<StoryPresentationSession>> GetSessionsFeedAsync(this SCLM sclm,
-            DateTime? data = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100,
-            bool completeOnly = false)
+        public static CLMAnalitycsFeed<StorySlideEvent> GetSlidesFeed(this SCLM sclm,
+            int presentationId,
+            string userId = null,
+            Section section = null,
+            long? continuationToken = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSessionsFeed}?");
-            query.Append($"skip={skip}&take={take}&");
-            query.Append(data.ToQuery(nameof(data), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StoryPresentationSession>>(GetUri(sclm, query.ToString()), CancellationToken.None);
+            return new CLMAnalitycsFeed<StorySlideEvent>(kAnalitycsSlidesdemonstrations, presentationId, userId, section, continuationToken)
+            {
+                _sclm = sclm,
+                CancellationToken = cancellationToken
+            };
         }
 
-        public static async Task<long> GetSessionsCountAsync(this SCLM sclm, 
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            bool completeOnly = false)
+        public static CLMAnalitycsFeed<StoryCustomEvent> GetCustomEventsFeed(this SCLM sclm,
+            int presentationId,
+            string userId = null,
+            Section section = null,
+            long? continuationToken = null,
+            CancellationToken cancellationToken = default(CancellationToken))
         {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSessionsCount}?");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
+            return new CLMAnalitycsFeed<StoryCustomEvent>(kAnalitycsCustomEvents, presentationId, userId, section, continuationToken)
+            {
+                _sclm = sclm,
+                CancellationToken = cancellationToken
+            };
         }
+
+
+        #region KPI
+
+        internal static Uri GetUri(Uri endpoint, int presentationId, string userId = null)
+        {
+            var builder = new UriBuilder(endpoint);
+            NameValueCollection parameters = HttpUtility.ParseQueryString(string.Empty);
+            parameters["presentationId"] = presentationId.ToString();
+
+            if (!string.IsNullOrEmpty(userId))
+                parameters["userId"] = userId;
+
+            builder.Query = parameters.ToString();
+            return builder.Uri;
+        }
+
+        public static async Task<StoryKPISEvent> GetKPIS(this SCLM sclm,
+            int presentationId,
+            string userId = null,
+            Section section = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Uri uri = GetUri(new Uri($"{sclm.GetEndpoint("api")}{Version}/{Path}/{kAnalitycskpis}/{section}", UriKind.Absolute), presentationId, userId);
+            return await sclm.GETAsync<StoryKPISEvent>(uri, CancellationToken.None);
+        }
+
+        public static async Task<StoryKPIPEvent> GetKPIP(this SCLM sclm,
+            int presentationId,
+            string userId = null,
+            Section section = null,
+            CancellationToken cancellationToken = default(CancellationToken))
+        {
+            Uri uri = GetUri(new Uri($"{sclm.GetEndpoint("api")}{Version}/{Path}/{kAnalitycskpip}/{section}", UriKind.Absolute), presentationId, userId);
+            return await sclm.GETAsync<StoryKPIPEvent>(uri, CancellationToken.None);
+        }
+
+        public static async Task SetKPIS(this SCLM sclm, StoryKPISEvent @event, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.PUTAsync<StoryCustomEvent>(GetUri(sclm, kAnalitycskpis), @event, cancellationToken);
+
+        public static async Task SetKPIP(this SCLM sclm, StoryKPIPEvent @event, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.PUTAsync<StoryCustomEvent>(GetUri(sclm, kAnalitycskpip), @event, cancellationToken);
 
         #endregion
 
-        #region Sessions
+        public static async Task SendSessionEvent(this SCLM sclm, StorySessionEvent @event, CancellationToken cancellationToken = default(CancellationToken)) => 
+            await sclm.PUTAsync<StorySessionEvent>(GetUri(sclm, kAnalitycsSessions), @event, cancellationToken);
 
-        public static async Task<IEnumerable<StorySlideDemonstration>> GetSlidesDemonstrationsAsync(this SCLM sclm,
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100,
-            bool completeOnly = false)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSlidesdemonstrations}?");
-            query.Append($"skip={skip}&take={take}&");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()), CancellationToken.None);
-        }
+        public static async Task SendSlideEvent(this SCLM sclm, StorySlideEvent @event, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.PUTAsync<StorySlideEvent>(GetUri(sclm, kAnalitycsSlidesdemonstrations), @event, cancellationToken);
 
-        public static async Task<IEnumerable<StorySlideDemonstration>> GetSlidesDemonstrationsFeedAsync(this SCLM sclm,
-            DateTime? data = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100,
-            bool completeOnly = false)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSlidesdemonstrationsFeed}?");
-            query.Append($"skip={skip}&take={take}&");
-            query.Append(data.ToQuery(nameof(data), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return await sclm.GETAsync<IEnumerable<StorySlideDemonstration>>(GetUri(sclm, query.ToString()), CancellationToken.None);
-        }
+        public static async Task SendCustomEvent(this SCLM sclm, StoryCustomEvent @event, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.PUTAsync<StoryCustomEvent>(GetUri(sclm, kAnalitycsCustomEvents), @event, cancellationToken);
 
-        public static async Task<long> GetSlidesDemonstrationsCountAsync(this SCLM sclm,
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            bool completeOnly = false)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsSlidesdemonstrationsCount}?");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"completeOnly={completeOnly}");
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
-        }
 
-        #endregion
 
-        #region CustomEvents
+        public static async Task<StoryVisit<T>> GetVisit<T>(this SCLM sclm, string sessionId, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.GETAsync<StoryVisit<T>>(GetUri(sclm, $"visits/{sessionId}"), cancellationToken);
 
-        public static async Task<IEnumerable<StoryCustomEvent>> GetCustomEventsAsync(this SCLM sclm, 
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsCustomEvents}?");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"skip={skip}&take={take}");
-            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()), CancellationToken.None);
-        }
+        public static async Task<T> GetForm<T>(this SCLM sclm, string sessionId, CancellationToken cancellationToken = default(CancellationToken)) where T : class =>
+            await sclm.GETAsync<T>(GetUri(sclm, $"form/{sessionId}"), cancellationToken);
 
-        public static async Task<IEnumerable<StoryCustomEvent>> GetCustomEventsFeedAsync(this SCLM sclm,
-            DateTime? data = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null,
-            int skip = 0,
-            int take = 100)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsCustomEventsFeed}?");
-            query.Append(data.ToQuery(nameof(data), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            query.Append($"skip={skip}&take={take}");
-            return await sclm.GETAsync<IEnumerable<StoryCustomEvent>>(GetUri(sclm, query.ToString()), CancellationToken.None);
-        }
 
-        public static async Task<long> GetCustomEventsCountAsync(this SCLM sclm, 
-            DateTime? start = null,
-            DateTime? finish = null,
-            IEnumerable<int> presentationsIds = null,
-            IEnumerable<string> usersIds = null)
-        {
-            StringBuilder query = new StringBuilder($"{kAnalitycsCustomEventsCount}?");
-            query.Append(start.ToQuery(nameof(start), false));
-            query.Append(finish.ToQuery(nameof(finish), false));
-            query.Append(presentationsIds.ToQueryArray("pIds", false));
-            query.Append(usersIds.ToQueryArray("uIds", false));
-            return (await sclm.GETAsync<StoryCount>(GetUri(sclm, query.ToString()), CancellationToken.None)).Count;
-        }
 
-        #endregion
+        public static async Task<StorySessionEvent> GetSessionEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.GETAsync<StorySessionEvent>(GetUri(sclm, $"session/{id}"), cancellationToken);
+
+        public static async Task<StorySlideEvent> GetSlideEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.GETAsync<StorySlideEvent>(GetUri(sclm, $"slide/{id}"), cancellationToken);
+
+        public static async Task<StoryCustomEvent> GetCustomEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.GETAsync<StoryCustomEvent>(GetUri(sclm, $"customevent/{id}"), cancellationToken);
+
+
+
+        public static async Task DeleteSessionEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.DELETEAsync<StorySessionEvent>(GetUri(sclm, $"sessions/{id}"), cancellationToken);
+
+        public static async Task DeleteSlideEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.DELETEAsync<StorySlideEvent>(GetUri(sclm, $"slides/{id}"), cancellationToken);
+
+        public static async Task DeleteCustomEvent(this SCLM sclm, string id, CancellationToken cancellationToken = default(CancellationToken)) =>
+            await sclm.DELETEAsync<StoryCustomEvent>(GetUri(sclm, $"customevents/{id}"), cancellationToken);
+
     }
 }

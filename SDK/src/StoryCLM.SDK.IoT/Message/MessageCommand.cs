@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using StoryCLM.SDK.IoT.Models;
 using System;
 using System.Net;
 using System.Net.Http;

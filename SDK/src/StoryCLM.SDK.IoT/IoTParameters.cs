@@ -2,19 +2,23 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace StoryCLM.SDK.IoT.Models
+namespace StoryCLM.SDK.IoT
 {
     /// <summary>
     /// Параметры сообщения. Используются при запросе.
     /// </summary>
     public class IoTParameters
     {
-        public IoTParameters(string hub, string key, string secret)
+        public IoTParameters(string hub, 
+            string key, 
+            string secret)
         {
             Hub = hub ?? throw new ArgumentNullException(nameof(hub));
             Key = key ?? throw new ArgumentNullException(nameof(key));
             Secret = secret ?? throw new ArgumentNullException(nameof(secret));
         }
+
+        public Uri Endpoint { get; set; } = new Uri("https://iot.storychannels.app");
 
         public string Hub { get; set; }
 
@@ -26,11 +30,6 @@ namespace StoryCLM.SDK.IoT.Models
         /// Уникальный идентификатор устройсва. Необязательный параметр. Может быть затребован настройками хаба.
         /// </summary>
         public virtual string DeviceId { get; set; }
-
-        /// <summary>
-        /// IP адрес устройства или диапазон адресов. Необязательный параметр. Может быть затребован настройками хаба.
-        /// </summary>
-        public virtual string IP { get; set; }
 
         /// <summary>
         /// Текущее время по UTC. Текущее время с погрешностью в 5 секунд. Необязательный параметр. Может быть затребован настройками хаба.

@@ -1,8 +1,6 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Text;
 
-namespace StoryCLM.SDK.IoT.Models
+namespace StoryCLM.SDK
 {
     public class YearSection : Section
     {

@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace StoryCLM.SDK.IoT.Models
+namespace StoryCLM.SDK.IoT
 {
     public class DaySection : Section
     {

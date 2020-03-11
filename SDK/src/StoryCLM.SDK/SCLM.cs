@@ -24,7 +24,6 @@ namespace StoryCLM.SDK
         const string _api = "api";
         const string _auth = "auth";
         const string _myo = "myo";
-        const string _iot = "iot";
 
         const string _post = "POST";
         const string _put = "PUT";
@@ -55,7 +54,6 @@ namespace StoryCLM.SDK
             SetEndpoint(_api, "https://api.storyclm.com");
             SetEndpoint(_auth, "https://auth.storyclm.com");
             SetEndpoint(_myo, "https://myosotis.storyclm.com");
-            SetEndpoint(_iot, "https://iot.storychannels.app");
             _logger = logger;
         }
 

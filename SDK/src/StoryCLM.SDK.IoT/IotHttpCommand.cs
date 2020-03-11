@@ -1,5 +1,4 @@
-﻿using StoryCLM.SDK.IoT.Models;
-using System;
+﻿using System;
 using System.Collections.Specialized;
 using System.IO;
 using System.Net.Http;
@@ -22,7 +21,6 @@ namespace StoryCLM.SDK.IoT
             _key = parameters.Key;
             _secret = parameters.Secret;
             DeviceId = parameters.DeviceId;
-            IP = parameters.IP;
             Expiration = parameters.Expiration == null ? null : (DateTimeOffset?)DateTimeOffset.UtcNow.Add(parameters.Expiration.Value);
             Current = parameters.Current ? (DateTimeOffset?)DateTimeOffset.UtcNow : null;
             Data = data;
@@ -54,7 +52,7 @@ namespace StoryCLM.SDK.IoT
             _parameters.Remove(name);
 
         /// <summary>
-        /// Уникальный идентификатор устройсва. Необязательный параметр. Может быть затребован настройками хаба.
+        /// Уникальный идентификатор устройсва. Необязательный параметр. Может быть затребован настройками ключа.
         /// </summary>
         public virtual string DeviceId
         {
@@ -67,19 +65,6 @@ namespace StoryCLM.SDK.IoT
             }
         }
 
-        /// <summary>
-        /// IP адрес устройства или диапазон адресов. Необязательный параметр. Может быть затребован настройками хаба.
-        /// </summary>
-        public virtual string IP
-        {
-            get => _parameters["ip"];
-
-            set
-            {
-                if (!string.IsNullOrEmpty(value))
-                    _parameters["ip"] = IP;
-            }
-        }
 
         DateTimeOffset? _current;
 
@@ -132,7 +117,7 @@ namespace StoryCLM.SDK.IoT
 
         public virtual Encoding Encoding { get; set; } = Encoding.UTF8;
 
-        public virtual Uri Endpoint { get; set; } = new Uri("https://iot.storychannels.app");
+        public virtual Uri Endpoint { get; set; }
 
         public virtual Stream Data { get; set; }
 
@@ -172,9 +157,6 @@ namespace StoryCLM.SDK.IoT
 
             if (!string.IsNullOrEmpty(DeviceId))
                 text.Append($"did={DeviceId}");
-
-            if (!string.IsNullOrEmpty(IP))
-                text.Append($"ip={IP}");
 
             if (Current != null && Current.HasValue)
                 text.Append($"ct={Current.Value.ToUnixTimeMilliseconds()}");

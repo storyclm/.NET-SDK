@@ -1,5 +1,4 @@
 ﻿using Newtonsoft.Json;
-using StoryCLM.SDK.IoT.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,8 +18,6 @@ namespace StoryCLM.SDK.IoT
         }
 
         public string ContinuationToken { get; set; }
-
-        public int PageSize { get; set; } = 100;
 
         public IEnumerable<Message> Messages { get; set; }
 

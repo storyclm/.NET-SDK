@@ -1,5 +1,4 @@
 using Shared;
-using StoryCLM.SDK.IoT.Models;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -90,7 +89,7 @@ namespace StoryCLM.SDK.IoT.Test
                     sha512.TransformBlock(buffer, 0, lenght, null, 0);
                 }
                 sha512.TransformFinalBlock(buffer, 0, 0);
-                return $"base64;sha512;{Convert.ToBase64String(sha512.Hash)}";
+                return sha512.Hash.ToHashString();
             }
         }
 

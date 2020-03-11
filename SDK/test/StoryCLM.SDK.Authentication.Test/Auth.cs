@@ -42,6 +42,7 @@ namespace StoryCLM.SDK.Authentication.Test
         public async Task ServiceLogin()
         {
             SCLM sclm = new SCLM();
+            sclm.SetEndpoint("auth", Settings.AuthEndpoint);
             StoryToken token = await sclm.AuthAsync(Settings.ServiceClientId, Settings.ServiceSecret);
             Assert.NotNull(token);
             Assert.NotNull(token.AccessToken);

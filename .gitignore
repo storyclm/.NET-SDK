@@ -242,3 +242,5 @@ ModelManifest.xml
 .fake/
 SDK/test/Shared/Settings.json
 SDK/nuget.ps1
+SDK/StoryCLM.SDK.ps1
+*.ps1

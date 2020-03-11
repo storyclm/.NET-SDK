@@ -19,7 +19,7 @@ namespace StoryCLM.SDK.Authentication
             using (var client = new HttpClient(handler))
             {
                 client.DefaultRequestHeaders.Accept.Clear();
-                HttpResponseMessage response = await client.PostAsync(endpoint + "/connect/token", new FormUrlEncodedContent(form));
+                HttpResponseMessage response = await client.PostAsync(new Uri(endpoint, "/connect/token"), new FormUrlEncodedContent(form));
                 var result = await response.Content.ReadAsStringAsync();
                 if (!(response.StatusCode != HttpStatusCode.Created
                     || response.StatusCode != HttpStatusCode.OK)) throw new InvalidOperationException(result);

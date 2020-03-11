@@ -13,12 +13,13 @@
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Version>1.0.5</Version>
-    <AssemblyVersion>1.0.5.0</AssemblyVersion>
+    <AssemblyVersion>1.0.5.2</AssemblyVersion>
     <Platforms>AnyCPU;x86</Platforms>
+    <FileVersion>1.0.5.2</FileVersion>
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="Breffi.Story.Common" Version="0.1.1" />
+    <PackageReference Include="Breffi.Story.Common" Version="0.1.5" />
     <PackageReference Include="Newtonsoft.Json" Version="11.0.2" />
     <PackageReference Include="StoryCLM.SDK" Version="2.3.11" />
   </ItemGroup>
