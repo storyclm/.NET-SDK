@@ -1,10 +1,4 @@
-﻿/*!
-* StoryCLM.SDK Library v2.3.5
-* Copyright(c) 2019, Vladimir Klyuev, Breffi Inc. All rights reserved.
-* License: Licensed under The MIT License.
-*/
-using Breffi.Story.Common.Retry;
-using Microsoft.Extensions.Logging;
+﻿using Breffi.Story.Common.Retry;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;
@@ -35,8 +29,6 @@ namespace StoryCLM.SDK
 
         static readonly HttpClient _httpClient;
 
-        ILogger _logger;
-
         static SCLM()
         {
             _httpClient = new HttpClient(new HttpClientHandler()
@@ -49,18 +41,16 @@ namespace StoryCLM.SDK
             _httpClient.DefaultRequestHeaders.ConnectionClose = false;
         }
 
-        public SCLM(ILogger logger = null)
+        public SCLM()
         {
             SetEndpoint(_api, "https://api.storyclm.com");
             SetEndpoint(_auth, "https://auth.storyclm.com");
             SetEndpoint(_myo, "https://myosotis.storyclm.com");
-            _logger = logger;
         }
 
         public virtual async Task ExecuteHttpCommand(IHttpCommand command,
             IRetryPolicy retryPolicy = null,
-            CancellationToken cancellationToken = default(CancellationToken),
-            ILogger logger = null)
+            CancellationToken cancellationToken = default(CancellationToken))
         {
             if (command == null) return;
             async Task action()
@@ -289,7 +279,7 @@ namespace StoryCLM.SDK
             using (BackendCommand<T> command = new BackendCommand<T>(method, uri))
             {
                 command.Data = o;
-                await ExecuteHttpCommand(command, retryPolicy ?? HttpQueryPolicy, cancellationToken, _logger);
+                await ExecuteHttpCommand(command, retryPolicy ?? HttpQueryPolicy, cancellationToken);
                 if (command.Exception != null) throw command.Exception;
                 return command.Result;
             }

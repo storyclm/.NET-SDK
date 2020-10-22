@@ -2,29 +2,28 @@
 
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
-    <Version>2.3.13</Version>
-    <Description>Story— a digital-platform developed by BREFFI, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
+    <Version>2.4.0</Version>
+    <Description>Story— a digital-platform developed by Right Perception, allowing you to create interactive presentations with immediate feedback on the change in the customer perception of the brand and the representative’s activity.</Description>
     <PackageIconUrl>https://avatars3.githubusercontent.com/u/17642277</PackageIconUrl>
-    <Authors>Breffi LLC</Authors>
-    <Copyright>© 2020. BREFFI</Copyright>
-    <Company>Breffi LLC</Company>
+    <Authors>Right Perception LLC</Authors>
+    <Copyright>© 2020. Right Perception</Copyright>
+    <Company>Right Perception LLC</Company>
     <Product>Story</Product>
-    <PackageTags>story, breffi, content, clm, marketing</PackageTags>
+    <PackageTags>story, content, clm</PackageTags>
     <PackageLicenseUrl>https://github.com/storyclm/.NET-SDK/blob/master/LICENSE</PackageLicenseUrl>
     <RepositoryUrl>https://github.com/storyclm/.NET-SDK</RepositoryUrl>
     <PackageProjectUrl>https://breffi.ru/en/storyclm</PackageProjectUrl>
     <GeneratePackageOnBuild>True</GeneratePackageOnBuild>
     <PackageId>StoryCLM.SDK</PackageId>
-    <AssemblyVersion>2.3.13.8</AssemblyVersion>
-    <FileVersion>2.3.13.8</FileVersion>
+    <AssemblyVersion>2.4.0.8</AssemblyVersion>
+    <FileVersion>2.4.0.8</FileVersion>
     <Platforms>AnyCPU;x86</Platforms>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="Breffi.Story" Version="0.5.0" />
     <PackageReference Include="Breffi.Story.Common" Version="0.1.5" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="2.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="9.0.1" />
-    <PackageReference Include="StoryCLM.SDK.Common" Version="0.1.4" />
   </ItemGroup>
 
 </Project>
